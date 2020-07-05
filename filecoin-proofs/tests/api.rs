@@ -289,6 +289,32 @@ fn test_window_post_single_partition_matching_2kib_base_8() -> Result<()> {
     window_post::<SectorShape2KiB>(sector_size, sector_count, sector_count, true)
 }
 
+#[test]
+#[ignore]
+fn test_winning_post_fake_single_partition_matching_32gib_8_8_0() -> Result<()> {
+    let sector_size = SECTOR_SIZE_32_GIB;
+    let sector_count = *WINDOW_POST_SECTOR_COUNT
+        .read()
+        .unwrap()
+        .get(&sector_size)
+        .unwrap();
+
+    winning_post::<SectorShape32GiB>(sector_size, true)
+}
+
+#[test]
+#[ignore]
+fn test_winning_post_fake_single_partition_matching_64gib_8_8_2() -> Result<()> {
+    let sector_size = SECTOR_SIZE_64_GIB;
+    let sector_count = *WINDOW_POST_SECTOR_COUNT
+        .read()
+        .unwrap()
+        .get(&sector_size)
+        .unwrap();
+
+    winning_post::<SectorShape64GiB>(sector_size, true)
+}
+
 fn window_post<Tree: 'static + MerkleTreeTrait>(
     sector_size: u64,
     total_sector_count: usize,
