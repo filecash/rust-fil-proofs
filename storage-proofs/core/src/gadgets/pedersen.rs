@@ -1,7 +1,7 @@
 use bellperson::gadgets::{boolean::Boolean, num};
 use bellperson::{ConstraintSystem, SynthesisError};
 use fil_sapling_crypto::circuit::pedersen_hash;
-use paired::bls12_381::Bls12;
+use bellperson::bls::Bls12;
 
 use crate::crypto::pedersen::{JJ_PARAMS, PEDERSEN_BLOCK_SIZE};
 
@@ -54,7 +54,7 @@ pub fn pedersen_compression_num<CS: ConstraintSystem<Bls12>>(
     Ok(pedersen_hash::pedersen_hash(
         cs.namespace(|| "inner hash"),
         pedersen_hash::Personalization::None,
-        &bits,
+        bits,
         &*JJ_PARAMS,
     )?
     .get_x()
@@ -85,7 +85,7 @@ mod tests {
     use bellperson::gadgets::boolean::Boolean;
     use bellperson::util_cs::test_cs::TestConstraintSystem;
     use bellperson::ConstraintSystem;
-    use paired::bls12_381::Bls12;
+    use bellperson::bls::Bls12;
     use rand::{Rng, SeedableRng};
     use rand_xorshift::XorShiftRng;
 

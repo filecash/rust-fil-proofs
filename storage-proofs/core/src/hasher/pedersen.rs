@@ -8,7 +8,7 @@ use fil_sapling_crypto::circuit::pedersen_hash as pedersen_hash_circuit;
 use fil_sapling_crypto::pedersen_hash::Personalization;
 use merkletree::hash::{Algorithm as LightAlgorithm, Hashable};
 use merkletree::merkle::Element;
-use paired::bls12_381::{Bls12, Fr, FrRepr};
+use bellperson::bls::{Bls12, Fr, FrRepr};
 use serde::{Deserialize, Serialize};
 
 use crate::crypto::{pedersen, sloth};

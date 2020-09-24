@@ -2,7 +2,7 @@ use anyhow::{ensure, Context};
 use ff::PrimeFieldRepr;
 use fil_sapling_crypto::jubjub::JubjubBls12;
 use lazy_static::lazy_static;
-use paired::bls12_381::{Fr, FrRepr};
+use bellperson::bls::{Fr, FrRepr};
 
 use crate::error::Result;
 use crate::fr32::bytes_into_frs;
@@ -297,7 +297,7 @@ mod tests {
     use crate::util::bytes_into_bits;
     use bitvec::{bitvec, order::Lsb0};
     use ff::Field;
-    use paired::bls12_381::Fr;
+    use bellperson::bls::Fr;
     use rand::{Rng, SeedableRng};
     use rand_xorshift::XorShiftRng;
 
