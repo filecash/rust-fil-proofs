@@ -1,7 +1,7 @@
+use bellperson::bls::Bls12;
 use bellperson::gadgets::{boolean::Boolean, num};
 use bellperson::{ConstraintSystem, SynthesisError};
 use fil_sapling_crypto::circuit::pedersen_hash;
-use bellperson::bls::Bls12;
 
 use crate::crypto::pedersen::{JJ_PARAMS, PEDERSEN_BLOCK_SIZE};
 
@@ -82,10 +82,10 @@ mod tests {
 
     use crate::crypto;
     use crate::util::bytes_into_boolean_vec;
+    use bellperson::bls::Bls12;
     use bellperson::gadgets::boolean::Boolean;
     use bellperson::util_cs::test_cs::TestConstraintSystem;
     use bellperson::ConstraintSystem;
-    use bellperson::bls::Bls12;
     use rand::{Rng, SeedableRng};
     use rand_xorshift::XorShiftRng;
 

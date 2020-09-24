@@ -1,6 +1,7 @@
 use std::hash::Hasher as StdHasher;
 
 use anyhow::ensure;
+use bellperson::bls::{Bls12, Fr, FrRepr};
 use bellperson::gadgets::{boolean, num};
 use bellperson::{ConstraintSystem, SynthesisError};
 use ff::{Field, PrimeField, PrimeFieldRepr};
@@ -8,7 +9,6 @@ use fil_sapling_crypto::circuit::pedersen_hash as pedersen_hash_circuit;
 use fil_sapling_crypto::pedersen_hash::Personalization;
 use merkletree::hash::{Algorithm as LightAlgorithm, Hashable};
 use merkletree::merkle::Element;
-use bellperson::bls::{Bls12, Fr, FrRepr};
 use serde::{Deserialize, Serialize};
 
 use crate::crypto::{pedersen, sloth};
