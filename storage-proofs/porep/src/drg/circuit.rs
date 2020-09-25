@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use bellperson::bls::{Bls12, Fr};
 use bellperson::gadgets::{
     boolean::Boolean,
     sha256::sha256 as sha256_circuit,
@@ -8,7 +9,6 @@ use bellperson::gadgets::{
 use bellperson::{Circuit, ConstraintSystem, SynthesisError};
 use ff::PrimeField;
 use fil_sapling_crypto::jubjub::JubjubEngine;
-use paired::bls12_381::{Bls12, Fr};
 
 use storage_proofs_core::{
     compound_proof::CircuitComponent, error::Result, gadgets::constraint, gadgets::encode,
