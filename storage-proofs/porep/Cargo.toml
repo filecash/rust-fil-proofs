@@ -9,7 +9,7 @@ repository = "https://github.com/filecoin-project/rust-fil-proofs"
 readme = "README.md"
 
 [dependencies]
-storage-proofs-core = { path = "../core", version = "^5.0.0"}
+storage-proofs-core = { path = "../core", version = "^5.0.0", default-features = false}
 sha2raw = { path = "../../sha2raw", version = "^2.0.0"}
 rand = "0.7"
 merkletree = "0.21.0"
@@ -40,9 +40,10 @@ rand_xorshift = "0.2.0"
 criterion = "0.3.2"
 
 [features]
-default = ["pairing"]
-pairing = ["storage-proofs-core/pairing", "bellperson/pairing", "fil-sapling-crypto/pairing"]
-blst = ["storage-proofs-core/blst", "bellperson/blst", "fil-sapling-crypto/blst"]
+default = ["pairing", "gpu"]
+gpu = ["storage-proofs-core/gpu"]
+pairing = ["storage-proofs-core/pairing", "bellperson/pairing", "fil-sapling-crypto/pairing", "neptune/pairing"]
+blst = ["storage-proofs-core/blst", "bellperson/blst", "fil-sapling-crypto/blst", "neptune/blst"]
 
 [[bench]]
 name = "encode"
