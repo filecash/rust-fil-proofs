@@ -9,3 +9,6 @@ members = [
   "fil-proofs-tooling",
   "sha2raw"
 ]
+
+[patch.crates-io]
+bellperson = { git = "https://github.com/filecoin-project/bellman", rev = "27b62813eb78c6d0188ab78e82fd01f632ce1cb6" }
