@@ -17,6 +17,8 @@ pub const SECTOR_SIZE_8_MIB: u64 = 1 << 23;
 pub const SECTOR_SIZE_16_MIB: u64 = 1 << 24;
 pub const SECTOR_SIZE_512_MIB: u64 = 1 << 29;
 pub const SECTOR_SIZE_1_GIB: u64 = 1 << 30;
+pub const SECTOR_SIZE_4_GIB: u64 = 1 << 32;
+pub const SECTOR_SIZE_16_GIB: u64 = 1 << 34;
 pub const SECTOR_SIZE_32_GIB: u64 = 1 << 35;
 pub const SECTOR_SIZE_64_GIB: u64 = 1 << 36;
 
@@ -43,6 +45,8 @@ lazy_static! {
             (SECTOR_SIZE_16_MIB, 2),
             (SECTOR_SIZE_512_MIB, 2),
             (SECTOR_SIZE_1_GIB, 2),
+            (SECTOR_SIZE_4_GIB, 64),
+            (SECTOR_SIZE_16_GIB, 176),
             (SECTOR_SIZE_32_GIB, 176),
             (SECTOR_SIZE_64_GIB, 176),
         ]
@@ -60,6 +64,8 @@ lazy_static! {
             (SECTOR_SIZE_16_MIB, 1),
             (SECTOR_SIZE_512_MIB, 1),
             (SECTOR_SIZE_1_GIB, 1),
+            (SECTOR_SIZE_4_GIB, 10),
+            (SECTOR_SIZE_16_GIB, 10),
             (SECTOR_SIZE_32_GIB, 10),
             (SECTOR_SIZE_64_GIB, 10),
         ]
@@ -77,6 +83,8 @@ lazy_static! {
             (SECTOR_SIZE_16_MIB, 2),
             (SECTOR_SIZE_512_MIB, 2),
             (SECTOR_SIZE_1_GIB, 2),
+            (SECTOR_SIZE_4_GIB, 8),
+            (SECTOR_SIZE_16_GIB, 2),
             (SECTOR_SIZE_32_GIB, 11),
             (SECTOR_SIZE_64_GIB, 11),
         ]
@@ -97,6 +105,8 @@ lazy_static! {
             (SECTOR_SIZE_16_MIB, 2),
             (SECTOR_SIZE_512_MIB, 2),
             (SECTOR_SIZE_1_GIB, 2),
+            (SECTOR_SIZE_4_GIB, 600),
+            (SECTOR_SIZE_16_GIB, 2300),
             (SECTOR_SIZE_32_GIB, 2349), // this gives 125,279,217 constraints, fitting in a single partition
             (SECTOR_SIZE_64_GIB, 2300), // this gives 129,887,900 constraints, fitting in a single partition
         ]
@@ -140,6 +150,7 @@ pub type SectorShapeTop2 = LCTree<DefaultTreeHasher, U8, U8, U2>;
 pub type SectorShape2KiB = SectorShapeBase;
 pub type SectorShape8MiB = SectorShapeBase;
 pub type SectorShape512MiB = SectorShapeBase;
+pub type SectorShape4GiB = SectorShapeBase;
 
 pub type SectorShape4KiB = SectorShapeSub2;
 pub type SectorShape16MiB = SectorShapeSub2;
@@ -147,13 +158,14 @@ pub type SectorShape1GiB = SectorShapeSub2;
 
 pub type SectorShape16KiB = SectorShapeSub8;
 pub type SectorShape32GiB = SectorShapeSub8;
+pub type SectorShape16GiB = SectorShapeSub8;
 
 pub type SectorShape32KiB = SectorShapeTop2;
 pub type SectorShape64GiB = SectorShapeTop2;
 
 pub fn is_sector_shape_base(sector_size: u64) -> bool {
     match sector_size {
-        SECTOR_SIZE_2_KIB | SECTOR_SIZE_8_MIB | SECTOR_SIZE_512_MIB => true,
+        SECTOR_SIZE_2_KIB | SECTOR_SIZE_8_MIB | SECTOR_SIZE_512_MIB | SECTOR_SIZE_4_GIB => true,
         _ => false,
     }
 }
@@ -167,7 +179,7 @@ pub fn is_sector_shape_sub2(sector_size: u64) -> bool {
 
 pub fn is_sector_shape_sub8(sector_size: u64) -> bool {
     match sector_size {
-        SECTOR_SIZE_16_KIB | SECTOR_SIZE_32_GIB => true,
+        SECTOR_SIZE_16_KIB | SECTOR_SIZE_32_GIB | SECTOR_SIZE_16_GIB => true,
         _ => false,
     }
 }
@@ -247,6 +259,12 @@ macro_rules! with_shape {
             },
             _x if $size == $crate::constants::SECTOR_SIZE_1_GIB => {
               $f::<$crate::constants::SectorShape1GiB>($($args),*)
+            },
+            _x if $size == $crate::constants::SECTOR_SIZE_4_GIB => {
+                $f::<$crate::constants::SectorShape4GiB>($($args),*)
+            },
+            _x if $size == $crate::constants::SECTOR_SIZE_16_GIB => {
+                $f::<$crate::constants::SectorShape16GiB>($($args),*)
             },
             _x if $size == $crate::constants::SECTOR_SIZE_32_GIB => {
               $f::<$crate::constants::SectorShape32GiB>($($args),*)
@@ -334,6 +352,8 @@ mod tests {
         test_with_shape_macro_aux(SECTOR_SIZE_16_MIB);
         test_with_shape_macro_aux(SECTOR_SIZE_512_MIB);
         test_with_shape_macro_aux(SECTOR_SIZE_1_GIB);
+        test_with_shape_macro_aux(SECTOR_SIZE_4_GIB);
+        test_with_shape_macro_aux(SECTOR_SIZE_16_GIB);
         test_with_shape_macro_aux(SECTOR_SIZE_32_GIB);
         test_with_shape_macro_aux(SECTOR_SIZE_64_GIB);
     }
