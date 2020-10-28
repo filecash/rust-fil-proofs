@@ -12,3 +12,4 @@ members = [
 
 [patch.crates-io]
 bellperson = { git = "https://github.com/filecoin-project/bellman", branch = "blstrs" }
+rust-gpu-tools = { git = "https://github.com/filecoin-project/rust-gpu-tools", branch = "avoid-find-platform" }
