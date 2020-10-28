@@ -9,3 +9,6 @@ members = [
   "fil-proofs-tooling",
   "sha2raw"
 ]
+
+[patch.crates-io]
+rust-gpu-tools = { git = "https://github.com/filecoin-project/rust-gpu-tools", rev = "c0cd5c9707a68445c2d46a671696de676b8c239a" }
