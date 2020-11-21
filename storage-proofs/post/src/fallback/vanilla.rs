@@ -410,7 +410,9 @@ impl<'a, Tree: 'a + MerkleTreeTrait> ProofScheme<'a> for FallbackPoSt<'a, Tree> 
                     &comm_r_last,
                 )) != AsRef::<[u8]>::as_ref(comm_r)
                 {
-                    return Ok(false);
+                    //return Ok(false);
+                    trace!("sector_post_check for sector {:?}: failed at pos 0", sector_id)
+                    return false;
                 }
 
                 ensure!(
@@ -432,7 +434,9 @@ impl<'a, Tree: 'a + MerkleTreeTrait> ProofScheme<'a> for FallbackPoSt<'a, Tree> 
 
                     // validate all comm_r_lasts match
                     if inclusion_proof.root() != comm_r_last {
-                        return Ok(false);
+                        //return Ok(false);
+                        trace!("sector_post_check for sector {:?}: failed at pos 1", sector_id)
+                        return false;
                     }
 
                     // validate the path length
@@ -440,11 +444,15 @@ impl<'a, Tree: 'a + MerkleTreeTrait> ProofScheme<'a> for FallbackPoSt<'a, Tree> 
                         inclusion_proof.expected_len(pub_params.sector_size as usize / NODE_SIZE);
 
                     if expected_path_length != inclusion_proof.path().len() {
-                        return Ok(false);
+                        //return Ok(false);
+                        trace!("sector_post_check for sector {:?}: failed at pos 2", sector_id)
+                        return false;
                     }
 
                     if !inclusion_proof.validate(challenged_leaf_start as usize) {
-                        return Ok(false);
+                        //return Ok(false);
+                        trace!("sector_post_check for sector {:?}: failed at pos 3", sector_id)
+                        return false;
                     }
                 }
             }
