@@ -90,13 +90,13 @@ mod tests {
     use sha2::{Digest, Sha256 as Original};
 
     #[test]
-    fn test_fuzz_simple() {
+    fn test_fuzz_simple_sha256() {
         fuzz(10);
     }
 
     #[test]
     #[ignore]
-    fn test_fuzz_long() {
+    fn test_fuzz_long_sha256() {
         fuzz(1_000);
     }
 

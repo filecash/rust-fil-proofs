@@ -76,6 +76,13 @@ fn get_tree_r_last_root(
             &replica_config,
         )?;
         tree_r_last.root()
+    } else if is_sector_shape_sub4(sector_size) {
+        let tree_r_last = SectorShapeSub4::from_store_configs_and_replica(
+            base_tree_leafs,
+            &configs,
+            &replica_config,
+        )?;
+        tree_r_last.root()
     } else if is_sector_shape_sub8(sector_size) {
         let tree_r_last = SectorShapeSub8::from_store_configs_and_replica(
             base_tree_leafs,

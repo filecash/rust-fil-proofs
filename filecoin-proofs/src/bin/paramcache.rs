@@ -17,7 +17,7 @@ use storage_proofs::parameter_cache::CacheableParameters;
 use storage_proofs::porep::stacked::{StackedCompound, StackedDrg};
 use storage_proofs::post::fallback::{FallbackPoSt, FallbackPoStCircuit, FallbackPoStCompound};
 
-const PUBLISHED_SECTOR_SIZES: [u64; 10] = [
+const PUBLISHED_SECTOR_SIZES: [u64; 12] = [
     SECTOR_SIZE_2_KIB,
     SECTOR_SIZE_4_KIB,
     SECTOR_SIZE_16_KIB,
@@ -26,6 +26,8 @@ const PUBLISHED_SECTOR_SIZES: [u64; 10] = [
     SECTOR_SIZE_16_MIB,
     SECTOR_SIZE_512_MIB,
     SECTOR_SIZE_1_GIB,
+    SECTOR_SIZE_4_GIB,
+    SECTOR_SIZE_16_GIB,
     SECTOR_SIZE_32_GIB,
     SECTOR_SIZE_64_GIB,
 ];
@@ -38,7 +40,7 @@ fn cache_porep_params<Tree: 'static + MerkleTreeTrait>(porep_config: PoRepConfig
         usize::from(PoRepProofPartitions::from(porep_config)),
         porep_config.porep_id,
     )
-    .unwrap();
+    .expect("failed to get public params from config");
 
     {
         let circuit = <StackedCompound<Tree, DefaultPieceHasher> as CompoundProof<
@@ -80,7 +82,8 @@ fn cache_porep_params<Tree: 'static + MerkleTreeTrait>(porep_config: PoRepConfig
 fn cache_winning_post_params<Tree: 'static + MerkleTreeTrait>(post_config: &PoStConfig) {
     info!("Winning PoSt params");
 
-    let post_public_params = winning_post_public_params::<Tree>(post_config).unwrap();
+    let post_public_params = winning_post_public_params::<Tree>(post_config)
+        .expect("failed to get public params from config");
 
     {
         let post_circuit: FallbackPoStCircuit<Tree> =
@@ -123,7 +126,8 @@ fn cache_winning_post_params<Tree: 'static + MerkleTreeTrait>(post_config: &PoSt
 fn cache_window_post_params<Tree: 'static + MerkleTreeTrait>(post_config: &PoStConfig) {
     info!("Window PoSt params");
 
-    let post_public_params = window_post_public_params::<Tree>(post_config).unwrap();
+    let post_public_params = window_post_public_params::<Tree>(post_config)
+        .expect("failed to get public params from config");
 
     {
         let post_circuit: FallbackPoStCircuit<Tree> =
@@ -195,9 +199,9 @@ fn generate_params_post(sector_size: u64) {
             challenge_count: WINDOW_POST_CHALLENGE_COUNT,
             sector_count: *WINDOW_POST_SECTOR_COUNT
                 .read()
-                .unwrap()
+                .expect("WINDOW_POST_SECTOR_COUNT poisoned")
                 .get(&sector_size)
-                .unwrap(),
+                .expect("unknown sector size"),
             typ: PoStType::Window,
             priority: true,
         }
@@ -213,9 +217,9 @@ fn generate_params_porep(sector_size: u64) {
             partitions: PoRepProofPartitions(
                 *POREP_PARTITIONS
                     .read()
-                    .unwrap()
+                    .expect("POREP_PARTITIONS poisoned")
                     .get(&sector_size)
-                    .expect("missing sector size"),
+                    .expect("unknown sector size"),
             ),
             porep_id: [0; 32],
         }
@@ -239,7 +243,9 @@ pub fn main() {
                 // Right aligning the numbers makes them easier to read
                 format!(
                     "{: >7}",
-                    sector_size.file_size(file_size_opts::BINARY).unwrap(),
+                    sector_size
+                        .file_size(file_size_opts::BINARY)
+                        .expect("failed to format sector size"),
                 )
             })
             .collect::<Vec<_>>();
@@ -248,7 +254,7 @@ pub fn main() {
             .with_prompt("Select the sizes that should be generated if not already cached [use space key to select]")
             .items(&sector_sizes[..])
             .interact()
-            .unwrap();
+            .expect("interaction failed");
 
         // Extract the selected sizes
         PUBLISHED_SECTOR_SIZES
@@ -285,7 +291,9 @@ pub fn main() {
     let only_post = opts.only_post;
 
     for sector_size in sizes {
-        let human_size = sector_size.file_size(file_size_opts::BINARY).unwrap();
+        let human_size = sector_size
+            .file_size(file_size_opts::BINARY)
+            .expect("failed to format sector size");
         let message = format!("Generating sector size: {}", human_size);
         info!("{}", &message);
 

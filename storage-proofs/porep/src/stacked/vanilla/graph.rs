@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 use anyhow::ensure;
 use log::info;
-use sha2raw::Sha256;
+use sha2raw::{utils as sha2utils, Sha512};
 use storage_proofs_core::{
     crypto::{
         derive_porep_domain_seed,
@@ -77,10 +77,13 @@ fn read_node<'a>(i: usize, parents: &[u32], data: &'a [u8]) -> &'a [u8] {
 pub fn derive_feistel_keys(porep_id: [u8; 32]) -> [u64; 4] {
     let mut feistel_keys = [0u64; 4];
     let raw_seed = derive_porep_domain_seed(FEISTEL_DST, porep_id);
-    feistel_keys[0] = u64::from_le_bytes(raw_seed[0..8].try_into().unwrap());
-    feistel_keys[1] = u64::from_le_bytes(raw_seed[8..16].try_into().unwrap());
-    feistel_keys[2] = u64::from_le_bytes(raw_seed[16..24].try_into().unwrap());
-    feistel_keys[3] = u64::from_le_bytes(raw_seed[24..32].try_into().unwrap());
+    feistel_keys[0] = u64::from_le_bytes(raw_seed[0..8].try_into().expect("from_le_bytes failure"));
+    feistel_keys[1] =
+        u64::from_le_bytes(raw_seed[8..16].try_into().expect("from_le_bytes failure"));
+    feistel_keys[2] =
+        u64::from_le_bytes(raw_seed[16..24].try_into().expect("from_le_bytes failure"));
+    feistel_keys[3] =
+        u64::from_le_bytes(raw_seed[24..32].try_into().expect("from_le_bytes failure"));
     feistel_keys
 }
 
@@ -126,7 +129,10 @@ where
     /// Returns a reference to the parent cache.
     pub fn parent_cache(&self) -> Result<ParentCache> {
         // Number of nodes to be cached in memory
-        let default_cache_size = settings::SETTINGS.lock().unwrap().sdr_parents_cache_size;
+        let default_cache_size = settings::SETTINGS
+            .lock()
+            .expect("sdr_parents_cache_size settings lock failure")
+            .sdr_parents_cache_size;
         let cache_entries = self.size() as u32;
         let cache_size = cache_entries.min(default_cache_size);
 
@@ -140,16 +146,17 @@ where
         node: u32,
         base_data: &[u8],
         exp_data: &[u8],
-        hasher: Sha256,
+        hasher: Sha512,
         mut cache: Option<&mut ParentCache>,
-    ) -> Result<[u8; 32]> {
+    ) -> Result<[u8; 64]> {
         if let Some(ref mut cache) = cache {
             let cache_parents = cache.read(node as u32)?;
             Ok(self.copy_parents_data_inner_exp(&cache_parents, base_data, exp_data, hasher))
         } else {
             let mut cache_parents = [0u32; DEGREE];
 
-            self.parents(node as usize, &mut cache_parents[..]).unwrap();
+            self.parents(node as usize, &mut cache_parents[..])
+                .expect("parents failure");
             Ok(self.copy_parents_data_inner_exp(&cache_parents, base_data, exp_data, hasher))
         }
     }
@@ -158,16 +165,17 @@ where
         &self,
         node: u32,
         base_data: &[u8],
-        hasher: Sha256,
+        hasher: Sha512,
         mut cache: Option<&mut ParentCache>,
-    ) -> Result<[u8; 32]> {
+    ) -> Result<[u8; 64]> {
         if let Some(ref mut cache) = cache {
             let cache_parents = cache.read(node as u32)?;
             Ok(self.copy_parents_data_inner(&cache_parents, base_data, hasher))
         } else {
             let mut cache_parents = [0u32; DEGREE];
 
-            self.parents(node as usize, &mut cache_parents[..]).unwrap();
+            self.parents(node as usize, &mut cache_parents[..])
+                .expect("parents failure");
             Ok(self.copy_parents_data_inner(&cache_parents, base_data, hasher))
         }
     }
@@ -177,27 +185,27 @@ where
         cache_parents: &[u32],
         base_data: &[u8],
         exp_data: &[u8],
-        mut hasher: Sha256,
-    ) -> [u8; 32] {
+        mut hasher: Sha512,
+    ) -> [u8; 64] {
         prefetch(&cache_parents[..BASE_DEGREE], base_data);
         prefetch(&cache_parents[BASE_DEGREE..], exp_data);
 
         // fill buffer
         let parents = [
-            read_node(0, cache_parents, base_data),
-            read_node(1, cache_parents, base_data),
-            read_node(2, cache_parents, base_data),
-            read_node(3, cache_parents, base_data),
-            read_node(4, cache_parents, base_data),
-            read_node(5, cache_parents, base_data),
-            read_node(6, cache_parents, exp_data),
-            read_node(7, cache_parents, exp_data),
-            read_node(8, cache_parents, exp_data),
-            read_node(9, cache_parents, exp_data),
-            read_node(10, cache_parents, exp_data),
-            read_node(11, cache_parents, exp_data),
-            read_node(12, cache_parents, exp_data),
-            read_node(13, cache_parents, exp_data),
+            &sha2utils::bits256_expand_to_bits512(read_node(0, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(1, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(2, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(3, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(4, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(5, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(6, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(7, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(8, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(9, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(10, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(11, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(12, cache_parents, exp_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(13, cache_parents, exp_data))[..],
         ];
 
         // round 1 (14)
@@ -215,18 +223,18 @@ where
         &self,
         cache_parents: &[u32],
         base_data: &[u8],
-        mut hasher: Sha256,
-    ) -> [u8; 32] {
+        mut hasher: Sha512,
+    ) -> [u8; 64] {
         prefetch(&cache_parents[..BASE_DEGREE], base_data);
 
         // fill buffer
         let parents = [
-            read_node(0, cache_parents, base_data),
-            read_node(1, cache_parents, base_data),
-            read_node(2, cache_parents, base_data),
-            read_node(3, cache_parents, base_data),
-            read_node(4, cache_parents, base_data),
-            read_node(5, cache_parents, base_data),
+            &sha2utils::bits256_expand_to_bits512(read_node(0, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(1, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(2, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(3, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(4, cache_parents, base_data))[..],
+            &sha2utils::bits256_expand_to_bits512(read_node(5, cache_parents, base_data))[..],
         ];
 
         // round 1 (0..6)

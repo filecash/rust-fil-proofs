@@ -123,6 +123,8 @@ enum Sector {
     SectorSize16MiB,
     SectorSize512MiB,
     SectorSize1GiB,
+    SectorSize4GiB,
+    SectorSize16GiB,
     SectorSize32GiB,
     SectorSize64GiB,
 }
@@ -138,6 +140,8 @@ impl Sector {
             Sector::SectorSize16MiB => SECTOR_SIZE_16_MIB,
             Sector::SectorSize512MiB => SECTOR_SIZE_512_MIB,
             Sector::SectorSize1GiB => SECTOR_SIZE_1_GIB,
+            Sector::SectorSize4GiB => SECTOR_SIZE_4_GIB,
+            Sector::SectorSize16GiB => SECTOR_SIZE_16_GIB,
             Sector::SectorSize32GiB => SECTOR_SIZE_32_GIB,
             Sector::SectorSize64GiB => SECTOR_SIZE_64_GIB,
         }
@@ -153,6 +157,8 @@ impl Sector {
             Sector::SectorSize16MiB => "16mib",
             Sector::SectorSize512MiB => "512mib",
             Sector::SectorSize1GiB => "1gib",
+            Sector::SectorSize4GiB => "4gib",
+            Sector::SectorSize16GiB => "16gib",
             Sector::SectorSize32GiB => "32gib",
             Sector::SectorSize64GiB => "64gib",
         }
@@ -168,6 +174,8 @@ impl Sector {
             Sector::SectorSize16MiB => "16MiB",
             Sector::SectorSize512MiB => "512MiB",
             Sector::SectorSize1GiB => "1GiB",
+            Sector::SectorSize4GiB => "4GiB",
+            Sector::SectorSize16GiB => "16GiB",
             Sector::SectorSize32GiB => "32GiB",
             Sector::SectorSize64GiB => "64GiB",
         }
@@ -229,7 +237,10 @@ fn params_filename(
 // (proof, hasher, sector-size, head, param-number, param-size, is-raw).
 fn parse_params_filename(path: &str) -> (Proof, Hasher, Sector, String, usize, ParamSize, bool) {
     // Remove directories from the path.
-    let filename = path.rsplitn(2, '/').next().unwrap();
+    let filename = path
+        .rsplitn(2, '/')
+        .next()
+        .expect("parse_params_filename rsplitn failed");
     let split: Vec<&str> = filename.split('_').collect();
 
     let proof = match split[0] {
@@ -254,6 +265,8 @@ fn parse_params_filename(path: &str) -> (Proof, Hasher, Sector, String, usize, P
         "16mib" => Sector::SectorSize16MiB,
         "512mib" => Sector::SectorSize512MiB,
         "1gib" => Sector::SectorSize1GiB,
+        "4gib" => Sector::SectorSize4GiB,
+        "16gib" => Sector::SectorSize16GiB,
         "32gib" => Sector::SectorSize32GiB,
         "64gib" => Sector::SectorSize64GiB,
         other => panic!("invalid sector-size in params filename: {}", other),
@@ -288,7 +301,11 @@ fn parse_params_filename(path: &str) -> (Proof, Hasher, Sector, String, usize, P
 }
 
 fn blank_sdr_poseidon_params<Tree: MerkleTreeTrait>(sector_size: u64) -> PoRepPublicParams<Tree> {
-    let n_partitions = *POREP_PARTITIONS.read().unwrap().get(&sector_size).unwrap();
+    let n_partitions = *POREP_PARTITIONS
+        .read()
+        .expect("porep partition read error")
+        .get(&sector_size)
+        .expect("porep partition get error");
 
     let porep_config = PoRepConfig {
         sector_size: SectorSize(sector_size),
@@ -302,7 +319,7 @@ fn blank_sdr_poseidon_params<Tree: MerkleTreeTrait>(sector_size: u64) -> PoRepPu
             usize::from(PoRepProofPartitions::from(porep_config)),
             porep_config.porep_id,
         )
-        .unwrap(),
+        .expect("failed to setup params"),
         partitions: Some(usize::from(PoRepProofPartitions::from(porep_config))),
         priority: false,
     };
@@ -311,7 +328,7 @@ fn blank_sdr_poseidon_params<Tree: MerkleTreeTrait>(sector_size: u64) -> PoRepPu
         StackedDrg<Tree, Sha256Hasher>,
         _,
     >>::setup(&setup_params)
-    .unwrap();
+    .expect("public param setup failed");
     public_params.vanilla_params
 }
 
@@ -361,7 +378,7 @@ fn blank_winning_post_poseidon_params<Tree: 'static + MerkleTreeTrait>(
         priority: false,
     };
 
-    winning_post_public_params::<Tree>(&post_config).unwrap()
+    winning_post_public_params::<Tree>(&post_config).expect("winning post public params failed")
 }
 
 fn blank_window_post_poseidon_params<Tree: 'static + MerkleTreeTrait>(
@@ -372,14 +389,14 @@ fn blank_window_post_poseidon_params<Tree: 'static + MerkleTreeTrait>(
         challenge_count: WINDOW_POST_CHALLENGE_COUNT,
         sector_count: *WINDOW_POST_SECTOR_COUNT
             .read()
-            .unwrap()
+            .expect("post config sector count read failure")
             .get(&sector_size)
-            .unwrap(),
+            .expect("post config sector count get failure"),
         typ: PoStType::Window,
         priority: false,
     };
 
-    window_post_public_params::<Tree>(&post_config).unwrap()
+    window_post_public_params::<Tree>(&post_config).expect("window post public params failed")
 }
 
 /// Creates the first phase2 parameters for a circuit and writes them to a file.
@@ -412,7 +429,7 @@ fn create_initial_params<Tree: 'static + MerkleTreeTrait>(
             >>::blank_circuit(&public_params);
             dt_create_circuit = start.elapsed().as_secs();
             let start = Instant::now();
-            let params = MPCParameters::new(circuit).unwrap();
+            let params = MPCParameters::new(circuit).expect("mpc params new failure");
             dt_create_params = start.elapsed().as_secs();
             params
         }
@@ -425,7 +442,7 @@ fn create_initial_params<Tree: 'static + MerkleTreeTrait>(
             >>::blank_circuit(&public_params);
             dt_create_circuit = start.elapsed().as_secs();
             let start = Instant::now();
-            let params = MPCParameters::new(circuit).unwrap();
+            let params = MPCParameters::new(circuit).expect("mpc params new failure");
             dt_create_params = start.elapsed().as_secs();
             params
         }
@@ -438,7 +455,7 @@ fn create_initial_params<Tree: 'static + MerkleTreeTrait>(
             >>::blank_circuit(&public_params);
             dt_create_circuit = start.elapsed().as_secs();
             let start = Instant::now();
-            let params = MPCParameters::new(circuit).unwrap();
+            let params = MPCParameters::new(circuit).expect("mpc params new failure");
             dt_create_params = start.elapsed().as_secs();
             params
         }
@@ -462,9 +479,9 @@ fn create_initial_params<Tree: 'static + MerkleTreeTrait>(
 
     {
         info!("writing large initial params to file: {}", large_path);
-        let file = File::create(&large_path).unwrap();
+        let file = File::create(&large_path).expect("param file create failure");
         let mut writer = BufWriter::with_capacity(1024 * 1024, file);
-        params.write(&mut writer).unwrap();
+        params.write(&mut writer).expect("param file write failure");
         info!("finished writing large params to file");
     }
 
@@ -505,7 +522,7 @@ fn get_mixed_entropy() -> [u8; 32] {
     let user_input = Password::with_theme(&ColorfulTheme::default())
         .with_prompt("Please randomly press your keyboard (press Return/Enter when finished)")
         .interact()
-        .unwrap();
+        .expect("entropy read failure");
 
     let mut blake2b = blake2b_simd::Params::default();
     blake2b.hash_length(32);
@@ -757,11 +774,11 @@ fn verify_contribution(
             Ok(params) => {
                 let dt_read = start_read.elapsed().as_secs();
                 info!("successfully read 'before' params, dt_read={}s", dt_read);
-                before_tx.send(Message::Done(params)).unwrap();
+                before_tx.send(Message::Done(params)).expect("send failure");
             }
             Err(e) => {
                 error!("failed to read 'before' params: {}", e);
-                before_tx.send(Message::Error(e)).unwrap();
+                before_tx.send(Message::Error(e)).expect("send failure");
             }
         };
     });
@@ -794,11 +811,11 @@ fn verify_contribution(
             Ok(params) => {
                 let dt_read = start_read.elapsed().as_secs();
                 info!("successfully read 'after' params, dt_read={}s", dt_read);
-                after_tx.send(Message::Done(params)).unwrap();
+                after_tx.send(Message::Done(params)).expect("send failure");
             }
             Err(e) => {
                 error!("failed to read 'after' params: {}", e);
-                after_tx.send(Message::Error(e)).unwrap();
+                after_tx.send(Message::Error(e)).expect("send failure");
             }
         };
     });
@@ -838,15 +855,17 @@ fn verify_contribution(
         thread::sleep(Duration::from_secs(3));
     }
 
-    before_thread.join().unwrap();
-    after_thread.join().unwrap();
+    before_thread.join().expect("thread join failure");
+    after_thread.join().expect("thread join failure");
 
     info!("verifying contribution");
     let start_verification = Instant::now();
 
-    let calculated_contrib =
-        phase2::small::verify_contribution_small(&before_params.unwrap(), &after_params.unwrap())
-            .expect("failed to calculate expected contribution");
+    let calculated_contrib = phase2::small::verify_contribution_small(
+        &before_params.expect("before params failure"),
+        &after_params.expect("after params failure"),
+    )
+    .expect("failed to calculate expected contribution");
 
     assert_eq!(
         &participant_contrib[..],
@@ -1180,6 +1199,16 @@ fn main() {
                 .help("Create circuit with 1GiB sector-size"),
         )
         .arg(
+            Arg::with_name("4gib")
+                .long("4gib")
+                .help("Create circuit with 4GiB sector-size"),
+        )
+        .arg(
+            Arg::with_name("16gib")
+                .long("16gib")
+                .help("Create circuit with 16GiB sector-size"),
+        )
+        .arg(
             Arg::with_name("32gib")
                 .long("32gib")
                 .help("Create circuit with 32GiB sector-size"),
@@ -1192,7 +1221,7 @@ fn main() {
         .group(
             ArgGroup::with_name("sector-size")
                 .args(&[
-                    "2kib", "4kib", "16kib", "32kib", "8mib", "16mib", "512mib", "1gib", "32gib",
+                    "2kib", "4kib", "16kib", "32kib", "8mib", "16mib", "512mib", "1gib", "4gib", "16gib", "32gib",
                     "64gib",
                 ])
                 .required(true)
@@ -1325,6 +1354,10 @@ fn main() {
                     Sector::SectorSize512MiB
                 } else if matches.is_present("1gib") {
                     Sector::SectorSize1GiB
+                } else if matches.is_present("4gib") {
+                    Sector::SectorSize4GiB
+                } else if matches.is_present("16gib") {
+                    Sector::SectorSize16GiB
                 } else if matches.is_present("32gib") {
                     Sector::SectorSize32GiB
                 } else {
@@ -1353,7 +1386,9 @@ fn main() {
                 );
             }
             "contribute" => {
-                let path_before = matches.value_of("path-before").unwrap();
+                let path_before = matches
+                    .value_of("path-before")
+                    .expect("path-before match failure");
 
                 let seed: Option<[u8; 32]> = matches.value_of("seed").map(|hex_str| {
                     assert_eq!(
@@ -1391,7 +1426,9 @@ fn main() {
                 contribute_to_params(path_before, seed);
             }
             "verify" => {
-                let path_after = matches.value_of("path-after").unwrap();
+                let path_after = matches
+                    .value_of("path-after")
+                    .expect("path-after match failure");
                 let raw_subgroup_checks = !matches.is_present("skip-raw-subgroup-checks");
 
                 assert!(
@@ -1495,7 +1532,9 @@ fn main() {
                 verify_contribution(&path_before, &path_after, contrib, raw_subgroup_checks);
             }
             "small" => {
-                let large_path = matches.value_of("large-path").unwrap();
+                let large_path = matches
+                    .value_of("large-path")
+                    .expect("large-path match failure");
 
                 let (proof, hasher, sector_size, head, param_num, param_size, read_raw) =
                     parse_params_filename(large_path);
@@ -1541,7 +1580,9 @@ fn main() {
                 println!("successfully wrote small params");
             }
             "convert" => {
-                let path_before = matches.value_of("path-before").unwrap();
+                let path_before = matches
+                    .value_of("path-before")
+                    .expect("path-before match failure");
 
                 let log_filename = format!("{}_convert.log", path_before);
                 setup_logger(&log_filename);
@@ -1549,8 +1590,12 @@ fn main() {
                 convert_small(path_before)
             }
             "merge" => {
-                let path_small = matches.value_of("path-small").unwrap();
-                let path_large_old = matches.value_of("path-large").unwrap();
+                let path_small = matches
+                    .value_of("path-small")
+                    .expect("path-small match failure");
+                let path_large_old = matches
+                    .value_of("path-large")
+                    .expect("path-large match failure");
 
                 assert!(
                     Path::new(path_small).exists(),
@@ -1822,7 +1867,7 @@ fn main() {
                 }
             }
             "parse" => {
-                let path = matches.value_of("path").unwrap();
+                let path = matches.value_of("path").expect("path match failure");
                 let (_, _, _, _, _, size, raw) = parse_params_filename(&path);
 
                 if raw {
@@ -1838,7 +1883,7 @@ fn main() {
                 println!("{:#?}", file_info);
             }
             "verify-g1" => {
-                let path = matches.value_of("path").unwrap();
+                let path = matches.value_of("path").expect("path match failure");
                 let (_, _, _, _, _, _, raw) = parse_params_filename(&path);
 
                 assert!(
@@ -1853,7 +1898,8 @@ fn main() {
                 println!("starting deserialization");
 
                 let start = Instant::now();
-                let _params = MPCSmall::read(&mut reader, raw, true).unwrap();
+                let _params =
+                    MPCSmall::read(&mut reader, raw, true).expect("mpc small read failure");
 
                 println!(
                     "succesfully verified h and l G1 points, dt={}s",

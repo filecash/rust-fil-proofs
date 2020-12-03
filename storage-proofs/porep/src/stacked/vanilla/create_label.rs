@@ -1,4 +1,7 @@
-use sha2raw::Sha256;
+use sha2raw::{
+    Sha512, 
+    utils as sha2utils
+};
 use storage_proofs_core::{
     error::Result,
     hasher::Hasher,
@@ -15,12 +18,13 @@ pub fn create_label<H: Hasher>(
     layer_index: usize,
     node: usize,
 ) -> Result<()> {
-    let mut hasher = Sha256::new();
-    let mut buffer = [0u8; 32];
+    let mut hasher = Sha512::new();
+    let mut buffer = [0u8; 64];
+	let replica_id_expand = sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(replica_id));
 
     buffer[..4].copy_from_slice(&(layer_index as u32).to_be_bytes());
     buffer[4..12].copy_from_slice(&(node as u64).to_be_bytes());
-    hasher.input(&[AsRef::<[u8]>::as_ref(replica_id), &buffer[..]][..]);
+    hasher.input(&[&replica_id_expand[..], &buffer[..]][..]);
 
     // hash parents for all non 0 nodes
     let hash = if node > 0 {
@@ -36,7 +40,7 @@ pub fn create_label<H: Hasher>(
     // store the newly generated key
     let start = data_at_node_offset(node);
     let end = start + NODE_SIZE;
-    layer_labels[start..end].copy_from_slice(&hash[..]);
+    layer_labels[start..end].copy_from_slice(&hash[..32]);
 
     // strip last two bits, to ensure result is in Fr.
     layer_labels[end - 1] &= 0b0011_1111;
@@ -53,12 +57,13 @@ pub fn create_label_exp<H: Hasher>(
     layer_index: usize,
     node: usize,
 ) -> Result<()> {
-    let mut hasher = Sha256::new();
-    let mut buffer = [0u8; 32];
+    let mut hasher = Sha512::new();
+    let mut buffer = [0u8; 64];
+	let replica_id_expand = sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(replica_id));
 
     buffer[0..4].copy_from_slice(&(layer_index as u32).to_be_bytes());
     buffer[4..12].copy_from_slice(&(node as u64).to_be_bytes());
-    hasher.input(&[AsRef::<[u8]>::as_ref(replica_id), &buffer[..]][..]);
+    hasher.input(&[&replica_id_expand[..], &buffer[..]][..]);
 
     // hash parents for all non 0 nodes
     let hash = if node > 0 {
@@ -74,7 +79,7 @@ pub fn create_label_exp<H: Hasher>(
     // store the newly generated key
     let start = data_at_node_offset(node);
     let end = start + NODE_SIZE;
-    layer_labels[start..end].copy_from_slice(&hash[..]);
+    layer_labels[start..end].copy_from_slice(&hash[..32]);
 
     // strip last two bits, to ensure result is in Fr.
     layer_labels[end - 1] &= 0b0011_1111;
