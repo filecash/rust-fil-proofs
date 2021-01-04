@@ -1,4 +1,4 @@
-use block_buffer::byteorder::{ByteOrder, BE};
+use byteorder::{ByteOrder, BE};
 
 use crate::consts::H512;
 use crate::platform::Implementation;
@@ -85,7 +85,7 @@ impl Sha512 {
     }
 }
 
-opaque_debug::impl_opaque_debug!(Sha512);
+opaque_debug::implement!(Sha512);
 
 #[cfg(test)]
 mod tests {

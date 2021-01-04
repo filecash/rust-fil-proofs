@@ -179,7 +179,7 @@ pub fn create_label<H: Hasher, T: AsRef<[u8]>>(
 ) -> Result<()> {
     let mut hasher = Sha512::new();
     let mut buffer = [0u8; 64];
-    let replica_id_expand = sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(replica_id));
+    let replica_id_expand = sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(&replica_id));
 
     buffer[..4].copy_from_slice(&(layer_index as u32).to_be_bytes());
     buffer[4..12].copy_from_slice(&(node as u64).to_be_bytes());
@@ -218,7 +218,7 @@ pub fn create_label_exp<H: Hasher, T: AsRef<[u8]>>(
 ) -> Result<()> {
     let mut hasher = Sha512::new();
     let mut buffer = [0u8; 64];
-    let replica_id_expand = sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(replica_id));
+    let replica_id_expand = sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(&replica_id));
 
     buffer[0..4].copy_from_slice(&(layer_index as u32).to_be_bytes());
     buffer[4..12].copy_from_slice(&(node as u64).to_be_bytes());

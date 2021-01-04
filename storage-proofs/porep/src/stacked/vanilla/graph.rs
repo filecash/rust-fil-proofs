@@ -186,8 +186,8 @@ where
         cache_parents: &[u32],
         base_data: &[u8],
         exp_data: &[u8],
-        mut hasher: Sha256,
-    ) -> [u8; 32] {
+        mut hasher: Sha512,
+    ) -> [u8; 64] {
         prefetch(&cache_parents[..BASE_DEGREE], base_data);
         prefetch(&cache_parents[BASE_DEGREE..], exp_data);
 
