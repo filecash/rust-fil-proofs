@@ -1,4 +1,4 @@
-use bellperson::gadgets::{boolean::Boolean, num, sha256::sha256 as sha256_circuit, uint32};
+use bellperson::gadgets::{boolean::Boolean, num, sha512::sha512 as sha512_circuit, uint32};
 use bellperson::{bls::Engine, ConstraintSystem, SynthesisError};
 use ff::PrimeField;
 use storage_proofs_core::{gadgets::multipack, gadgets::uint64, util::reverse_bit_numbering};
@@ -31,10 +31,18 @@ where
         ciphertexts.push(Boolean::constant(false));
     }
 
+    // expand replica_id
+    let ciphertexts_size = ciphertexts.len();
+    for i in 0..256 {
+        let a = i / 32;
+        let b = i % 32;
+        ciphertexts.push(ciphertexts[ciphertexts_size - a * 32 - 32 + b].not());
+    }
+
     ciphertexts.extend_from_slice(&layer_index.into_bits_be());
     ciphertexts.extend_from_slice(&node.to_bits_be());
     // pad to 64 bytes
-    while ciphertexts.len() < 512 {
+    while ciphertexts.len() < 1024 {
         ciphertexts.push(Boolean::constant(false));
     }
 
@@ -45,18 +53,26 @@ where
         while ciphertexts.len() % 256 != 0 {
             ciphertexts.push(Boolean::constant(false));
         }
+
+        // expend parent
+        let ciphertexts_size = ciphertexts.len();
+        for i in 0..256 {
+            let a = i / 32;
+            let b = i % 32;
+            ciphertexts.push(ciphertexts[ciphertexts_size - a * 32 - 32 + b].not());
+        }
     }
 
-    // 32b replica id
-    // 32b layer_index + node
-    // 37 * 32b  = 1184b parents
-    assert_eq!(ciphertexts.len(), (1 + 1 + TOTAL_PARENTS) * 32 * 8);
+    // 64b replica id
+    // 64b layer_index + node
+    // 37 * 64b  = 1184b parents
+    assert_eq!(ciphertexts.len(), (1 + 1 + TOTAL_PARENTS) * 64 * 8);
 
     // Compute Sha256
-    let alloc_bits = sha256_circuit(cs.namespace(|| "hash"), &ciphertexts[..])?;
+    let alloc_bits = sha512_circuit(cs.namespace(|| "hash"), &ciphertexts[..])?;
 
     // Convert the hash result into a single Fr.
-    let bits = reverse_bit_numbering(alloc_bits);
+    let bits = reverse_bit_numbering(alloc_bits[..256].to_vec());
     multipack::pack_bits(
         cs.namespace(|| "result_num"),
         &bits[0..(E::Fr::CAPACITY as usize)],
@@ -161,7 +177,7 @@ mod tests {
         .expect("key derivation function failed");
 
         assert!(cs.is_satisfied(), "constraints not satisfied");
-        assert_eq!(cs.num_constraints(), 532_025);
+        assert_eq!(cs.num_constraints(), 1_342_661);
 
         let (l1, l2) = data.split_at_mut(size * NODE_SIZE);
         create_label::single::create_label_exp(

@@ -124,6 +124,8 @@ enum Sector {
     SectorSize1GiB,
     SectorSize32GiB,
     SectorSize64GiB,
+    SectorSize4GiB,
+    SectorSize16GiB,
 }
 
 impl Sector {
@@ -139,6 +141,8 @@ impl Sector {
             Sector::SectorSize1GiB => SECTOR_SIZE_1_GIB,
             Sector::SectorSize32GiB => SECTOR_SIZE_32_GIB,
             Sector::SectorSize64GiB => SECTOR_SIZE_64_GIB,
+            Sector::SectorSize4GiB => SECTOR_SIZE_4_GIB,
+            Sector::SectorSize16GiB => SECTOR_SIZE_16_GIB,
         }
     }
 
@@ -154,6 +158,8 @@ impl Sector {
             Sector::SectorSize1GiB => "1gib",
             Sector::SectorSize32GiB => "32gib",
             Sector::SectorSize64GiB => "64gib",
+            Sector::SectorSize4GiB => "4gib",
+            Sector::SectorSize16GiB => "16gib",
         }
     }
 
@@ -169,6 +175,8 @@ impl Sector {
             Sector::SectorSize1GiB => "1GiB",
             Sector::SectorSize32GiB => "32GiB",
             Sector::SectorSize64GiB => "64GiB",
+            Sector::SectorSize4GiB => "4GiB",
+            Sector::SectorSize16GiB => "16GiB",
         }
     }
 }
@@ -1161,11 +1169,21 @@ fn main() {
                 .long("64gib")
                 .help("Create circuit with 64GiB sector-size"),
         )
+        .arg(
+            Arg::with_name("4gib")
+                .long("4gib")
+                .help("Create circuit with 4GiB sector-size"),
+        )
+        .arg(
+            Arg::with_name("16gib")
+                .long("16gib")
+                .help("Create circuit with 16GiB sector-size"),
+        )
         .group(
             ArgGroup::with_name("sector-size")
                 .args(&[
                     "2kib", "4kib", "16kib", "32kib", "8mib", "16mib", "512mib", "1gib", "32gib",
-                    "64gib",
+                    "64gib", "4gib", "16gib",
                 ])
                 .required(true)
                 .multiple(false),
@@ -1299,6 +1317,10 @@ fn main() {
                     Sector::SectorSize1GiB
                 } else if matches.is_present("32gib") {
                     Sector::SectorSize32GiB
+                } else if matches.is_present("4gib") {
+                    Sector::SectorSize4GiB
+                } else if matches.is_present("16gib") {
+                    Sector::SectorSize16GiB
                 } else {
                     Sector::SectorSize64GiB
                 };

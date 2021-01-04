@@ -84,4 +84,12 @@ impl Implementation {
             }
         }
     }
+    pub fn compress512(self, state: &mut [u64; 8], blocks: &[&[u8]]) {
+        let mut buffer = [0u8; 128];
+        for block in blocks.chunks(2) {
+            buffer[..64].copy_from_slice(&block[0]);
+            buffer[64..].copy_from_slice(&block[1]);
+            sha2_asm::compress512(state, &buffer);
+        }
+    }
 }

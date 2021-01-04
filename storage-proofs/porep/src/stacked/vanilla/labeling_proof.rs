@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use log::trace;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+use sha2::{Digest, Sha512};
 use storage_proofs_core::{fr32::bytes_into_fr_repr_safe, hasher::Hasher};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,27 +25,29 @@ impl<H: Hasher> LabelingProof<H> {
     }
 
     fn create_label(&self, replica_id: &H::Domain) -> H::Domain {
-        let mut hasher = Sha256::new();
-        let mut buffer = [0u8; 64];
+        let mut hasher = Sha512::new();
+        let mut buffer = [0u8; 128];
 
         // replica_id
-        buffer[..32].copy_from_slice(AsRef::<[u8]>::as_ref(replica_id));
+        buffer[..64].copy_from_slice(
+            &sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(replica_id))[..],
+        );
 
         // layer index
-        buffer[32..36].copy_from_slice(&(self.layer_index as u32).to_be_bytes());
+        buffer[64..68].copy_from_slice(&(self.layer_index as u32).to_be_bytes());
 
         // node id
-        buffer[36..44].copy_from_slice(&(self.node as u64).to_be_bytes());
+        buffer[68..76].copy_from_slice(&(self.node as u64).to_be_bytes());
 
         hasher.update(&buffer[..]);
 
         // parents
         for parent in &self.parents {
-            let data = AsRef::<[u8]>::as_ref(parent);
+            let data = &sha2utils::bits256_expand_to_bits512(AsRef::<[u8]>::as_ref(parent))[..];
             hasher.update(data);
         }
 
-        bytes_into_fr_repr_safe(hasher.finalize().as_ref()).into()
+        bytes_into_fr_repr_safe(&hasher.finalize().as_ref()[..32]).into()
     }
 
     pub fn verify(&self, replica_id: &H::Domain, expected_label: &H::Domain) -> bool {
