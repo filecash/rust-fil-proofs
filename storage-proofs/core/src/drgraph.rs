@@ -157,7 +157,7 @@ impl<H: Hasher> Graph<H> for BucketGraph<H> {
                 let metagraph_node = node as u64 * m_prime as u64;
                 let n_buckets = (metagraph_node as f64).log2().ceil() as u64;
 
-                for parent in other_drg_parents.iter_mut().take(m_prime) {
+                for parent in parents.iter_mut().take(m_prime) {
                     let bucket_index = (rng.gen::<u64>() % n_buckets) + 1;
                     let largest_distance_in_bucket = min(metagraph_node, 1 << bucket_index);
                     let smallest_distance_in_bucket = max(2, largest_distance_in_bucket >> 1);
