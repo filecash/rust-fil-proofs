@@ -157,12 +157,6 @@ impl<H: Hasher> Graph<H> for BucketGraph<H> {
                 let metagraph_node = node as u64 * m_prime as u64;
                 let n_buckets = (metagraph_node as f64).log2().ceil() as u64;
 
-                let (predecessor_index, other_drg_parents) = if self.is_legacy {
-                    (m_prime, &mut parents[..])
-                } else {
-                    (0, &mut parents[1..])
-                };
-
                 for parent in other_drg_parents.iter_mut().take(m_prime) {
                     let bucket_index = (rng.gen::<u64>() % n_buckets) + 1;
                     let largest_distance_in_bucket = min(metagraph_node, 1 << bucket_index);
@@ -188,7 +182,7 @@ impl<H: Hasher> Graph<H> for BucketGraph<H> {
                 }
 
                 // Immediate predecessor must be the first parent, so hashing cannot begin early.
-                parents[predecessor_index] = node - 1;
+                parents[m_prime] = node - 1;
                 Ok(())
             }
         }
