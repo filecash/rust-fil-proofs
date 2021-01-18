@@ -29,7 +29,7 @@ use storage_proofs_core::{
     settings,
     util::{default_rows_to_discard, NODE_SIZE},
 };
-use typenum::{U11, U2, U8};
+use typenum::{U11, U2, U5, U8};
 
 use super::{
     challenges::LayerChallenges,
@@ -1000,6 +1000,16 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         let tree_c_root = match layers {
             2 => {
                 let tree_c = Self::generate_tree_c::<U2, Tree::Arity>(
+                    layers,
+                    nodes_count,
+                    tree_count,
+                    configs,
+                    &labels,
+                )?;
+                tree_c.root()
+            }
+            5 => {
+                let tree_c = Self::generate_tree_c::<U5, Tree::Arity>(
                     layers,
                     nodes_count,
                     tree_count,
