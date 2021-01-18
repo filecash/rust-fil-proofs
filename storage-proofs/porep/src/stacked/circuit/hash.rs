@@ -23,6 +23,16 @@ where
             column.to_vec(),
             &*storage_proofs_core::hasher::types::POSEIDON_CONSTANTS_11,
         ),
+        5 => poseidon_hash::<CS, Bls12, typenum::U5>(
+            cs,
+            column.to_vec(),
+            &*storage_proofs_core::hasher::types::POSEIDON_CONSTANTS_5,
+        ),
+        8 => poseidon_hash::<CS, Bls12, typenum::U8>(
+            cs,
+            column.to_vec(),
+            &*storage_proofs_core::hasher::types::POSEIDON_CONSTANTS_8,
+        ),
         _ => panic!("unsupported column size: {}", column.len()),
     }
 }
