@@ -4,7 +4,7 @@ use crate::crypto::sloth;
 use crate::error::{Error, Result};
 use crate::hasher::types::{
     PoseidonArity, PoseidonMDArity, POSEIDON_CONSTANTS_16, POSEIDON_CONSTANTS_2,
-    POSEIDON_CONSTANTS_4, POSEIDON_CONSTANTS_8, POSEIDON_MD_CONSTANTS,
+    POSEIDON_CONSTANTS_4, POSEIDON_CONSTANTS_5, POSEIDON_CONSTANTS_8, POSEIDON_MD_CONSTANTS,
 };
 use crate::hasher::{Domain, HashFunction, Hasher};
 use anyhow::ensure;
@@ -223,6 +223,10 @@ fn shared_hash_frs(
         }
         4 => {
             let mut p = Poseidon::new_with_preimage(&preimage, &POSEIDON_CONSTANTS_4);
+            p.hash()
+        }
+        5 => {
+            let mut p = Poseidon::new_with_preimage(&preimage, &POSEIDON_CONSTANTS_5);
             p.hash()
         }
         8 => {

@@ -25,6 +25,7 @@ pub const MERKLE_TREE_ARITY: usize = 2;
 lazy_static! {
     pub static ref POSEIDON_CONSTANTS_2: PoseidonConstants::<Bls12, U2> = PoseidonConstants::new();
     pub static ref POSEIDON_CONSTANTS_4: PoseidonConstants::<Bls12, U4> = PoseidonConstants::new();
+    pub static ref POSEIDON_CONSTANTS_5: PoseidonConstants::<Bls12, U5> = PoseidonConstants::new();
     pub static ref POSEIDON_CONSTANTS_8: PoseidonConstants::<Bls12, U8> = PoseidonConstants::new();
     pub static ref POSEIDON_CONSTANTS_16: PoseidonConstants::<Bls12, U16> =
         PoseidonConstants::new();
@@ -58,6 +59,12 @@ impl PoseidonArity for U2 {
 impl PoseidonArity for U4 {
     fn PARAMETERS() -> &'static PoseidonConstants<Bls12, Self> {
         &*POSEIDON_CONSTANTS_4
+    }
+}
+
+impl PoseidonArity for U5 {
+    fn PARAMETERS() -> &'static PoseidonConstants<Bls12, Self> {
+        &*POSEIDON_CONSTANTS_5
     }
 }
 
