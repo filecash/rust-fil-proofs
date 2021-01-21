@@ -60,7 +60,7 @@ lazy_static! {
             (SECTOR_SIZE_512_MIB, 2),
             (SECTOR_SIZE_1_GIB, 2),
             (SECTOR_SIZE_4_GIB, 64),
-            (SECTOR_SIZE_16_GIB, 176),
+            (SECTOR_SIZE_16_GIB, 80),
             (SECTOR_SIZE_32_GIB, 176),
             (SECTOR_SIZE_64_GIB, 176),
         ]
