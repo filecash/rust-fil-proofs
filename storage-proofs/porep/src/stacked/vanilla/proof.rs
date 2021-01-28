@@ -302,7 +302,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     ) -> Result<(Labels<Tree>, Vec<LayerState>)> {
         let mut parent_cache = graph.parent_cache()?;
 
-        if settings::SETTINGS.use_multicore_sdr {
+        if false {
             info!("multi core replication");
             create_label::multi::create_labels_for_encoding(
                 graph,
@@ -332,7 +332,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     ) -> Result<LabelsCache<Tree>> {
         let mut parent_cache = graph.parent_cache()?;
 
-        if settings::SETTINGS.use_multicore_sdr {
+        if false {
             info!("multi core replication");
             create_label::multi::create_labels_for_decoding(
                 graph,
