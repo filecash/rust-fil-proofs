@@ -265,6 +265,8 @@ fn parse_params_filename(path: &str) -> (Proof, Hasher, Sector, String, usize, P
         "1gib" => Sector::SectorSize1GiB,
         "32gib" => Sector::SectorSize32GiB,
         "64gib" => Sector::SectorSize64GiB,
+        "4gib" => Sector::SectorSize4GiB,
+        "16gib" => Sector::SectorSize16GiB,
         other => panic!("invalid sector-size in params filename: {}", other),
     };
 
