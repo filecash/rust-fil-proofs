@@ -13,6 +13,7 @@ mod sha256;
 mod sha256_intrinsics;
 mod sha256_utils;
 mod sha512;
+mod sha512_avx_asm;
 pub mod utils;
 
 pub use digest::Digest;

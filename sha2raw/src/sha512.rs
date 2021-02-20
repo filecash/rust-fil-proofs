@@ -7,10 +7,10 @@ lazy_static::lazy_static! {
     static ref IMPL: Implementation = Implementation::detect();
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Sha512 {
-    len: (u64, u64),
-    state: [u64; 8],
+    pub len: (u64, u64),
+    pub state: [u64; 8],
 }
 
 impl Default for Sha512 {

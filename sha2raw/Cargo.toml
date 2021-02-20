@@ -9,6 +9,10 @@ repository = "https://github.com/filecoin-project/rust-fil-proofs"
 keywords = ["crypto", "sha2", "hash", "digest"]
 categories = ["cryptography", "no-std"]
 edition = "2018"
+build = "build.rs"
+
+[build-dependencies.cc]
+version = "1.0"
 
 [dependencies]
 digest = "0.9"

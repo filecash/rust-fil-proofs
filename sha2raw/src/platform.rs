@@ -11,6 +11,9 @@ enum Platform {
 #[derive(Clone, Copy, Debug)]
 pub struct Implementation(Platform);
 
+use crate::sha512_avx_asm;
+use std::ffi::c_void;
+
 impl Implementation {
     pub fn detect() -> Self {
         // Try the different implementations in order of how fast/modern they are.
@@ -89,7 +92,8 @@ impl Implementation {
         for block in blocks.chunks(2) {
             buffer[..64].copy_from_slice(&block[0]);
             buffer[64..].copy_from_slice(&block[1]);
-            sha2_asm::compress512(state, &buffer);
+            //sha2_asm::compress512(state, &buffer);
+            sha512_avx_asm::compress512_avx(&buffer as *const [u8; 128] as *const c_void, state as *mut [u64; 8] as *mut c_void, 1);
         }
     }
 }
