@@ -185,18 +185,6 @@ pub fn create_label<H: Hasher, T: AsRef<[u8]>>(
     buffer[4..12].copy_from_slice(&(node as u64).to_be_bytes());
     hasher.input(&[&replica_id_expand[..], &buffer[..]][..]);
 
-    let a = AsRef::<[u8]>::as_ref(&replica_id);
-    println!("input:");
-    for i in 0..32 {
-        print!("{} ", a[i]);
-    }
-    println!("");
-    for i in 0..32 {
-        print!("{} ", buffer[i]);
-    }
-    println!("");
-
-
     // hash parents for all non 0 nodes
     let hash = if node > 0 {
         // prefetch previous node, which is always a parent
@@ -207,13 +195,6 @@ pub fn create_label<H: Hasher, T: AsRef<[u8]>>(
     } else {
         hasher.finish()
     };
-
-    println!("output:");
-    for i in 0..32 {
-        print!("{} ", hash[i]);
-    }
-    println!("");
-    println!("");
 
     // store the newly generated key
     let start = data_at_node_offset(node);
@@ -243,17 +224,6 @@ pub fn create_label_exp<H: Hasher, T: AsRef<[u8]>>(
     buffer[4..12].copy_from_slice(&(node as u64).to_be_bytes());
     hasher.input(&[&replica_id_expand[..], &buffer[..]][..]);
 
-    let a = AsRef::<[u8]>::as_ref(&replica_id);
-    println!("input:");
-    for i in 0..32 {
-            print!("{} ", a[i]);
-    }
-    println!("");
-    for i in 0..32 {
-            print!("{} ", buffer[i]);
-    }
-    println!("");
-
     // hash parents for all non 0 nodes
     let hash = if node > 0 {
         // prefetch previous node, which is always a parent
@@ -264,13 +234,6 @@ pub fn create_label_exp<H: Hasher, T: AsRef<[u8]>>(
     } else {
         hasher.finish()
     };
-
-    println!("output:");
-    for i in 0..32 {
-            print!("{} ", hash[i]);
-    }
-    println!("");
-    println!("");
 
     // store the newly generated key
     let start = data_at_node_offset(node);

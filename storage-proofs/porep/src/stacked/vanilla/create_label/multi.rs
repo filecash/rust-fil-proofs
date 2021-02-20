@@ -82,18 +82,6 @@ fn fill_buffer(
     buffer[..12].copy_from_slice(&buf[32..44]);
     hasher[cur_node as usize].input(&[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
 
-    println!("input:");
-    for _i in 0..64 {
-        print!("{} ", buf[_i]);
-    }
-    println!("");
-
-    print!("state: ");
-    for _i in 0..8 {
-        print!("{} ", hasher[cur_node as usize].state[_i]);
-    }
-    println!("");
-
     // Fill in the base parents
     // Node 5 (prev node) will always be missing, and there tend to be
     // frequent close references.
@@ -333,18 +321,6 @@ fn create_layer_labels(
         let hash = hasher[0].finish();
         BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
 
-        println!("input:");
-        for _i in 0..64 {
-            print!("{} ", buf[_i]);
-        }
-        println!("");
-
-        println!("output:");
-        for _i in 0..32 {
-            print!("{} ", hash[_i]);
-        }
-        println!("");
-
         // Fix endianess
         cur_node_ptr[..8].iter_mut().for_each(|x| *x = x.to_be());
 
@@ -422,22 +398,6 @@ fn create_layer_labels(
                         &sha2utils::bits256_expand_to_bits512(&buf[224..256])[..],
                     ];
 
-                    println!("state:");
-                    for _i in 0..8 {
-                        print!("{} ", hasher[i as usize].state[_i]);
-                    }
-                    println!("");
-
-                    println!("input:");
-                    for _i in 0..6 {
-                        for _j in 0..32 {
-                            print!("{} ", parents[_i][_j]);
-                        }
-                        println!("");
-                    }
-                    println!("");
-                    println!("");
-
                     for _j in 0..6 {
                         //compress256!(cur_node_ptr, &buf[64..], 3);
                         hasher[i as usize].input(&parents);
@@ -458,12 +418,6 @@ fn create_layer_labels(
                     let hash = hasher[i as usize].finish_with(&parents[0]);
                     BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
 
-                    println!("output:");
-                    for _i in 0..32 {
-                        print!("{} ", hash[_i]);
-                    }
-                    println!("");
-                    println!("");
                 } else {
                     // Two rounds of all parents
                     /*let blocks = [
@@ -495,22 +449,6 @@ fn create_layer_labels(
                         &sha2utils::bits256_expand_to_bits512(&buf[480..512])[..],
                     ];
 
-                    print!("state: ");
-                    for _i in 0..8 {
-                        print!("{} ", hasher[i as usize].state[_i]);
-                    }
-                    println!("");
-
-                    println!("input");
-                    for _i in 0..14 {
-                        for _j in 0..32 {
-                            print!("{} ", parents[_i][_j]);
-                        }
-                        println!("");
-                    }
-                    println!("");
-                    println!("");
-
                     hasher[i as usize].input(&parents);
                     hasher[i as usize].input(&parents);
 
@@ -538,12 +476,6 @@ fn create_layer_labels(
                     let hash =  hasher[i as usize].finish_with(&parents[8]);
                     BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
 
-                     println!("output:");
-                    for _i in 0..32{
-                        print!("{} ", hash[_i]);
-                    }
-                    println!("");
-                    println!("");
                 }
 
                 // Fix endianess

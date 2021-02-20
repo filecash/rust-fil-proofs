@@ -209,20 +209,6 @@ where
             &sha2utils::bits256_expand_to_bits512(read_node(13, cache_parents, exp_data))[..],
         ];
 
-        print!("state: ");
-        for i in 0..8 {
-                print!("{} ", hasher.state[i]);
-        }
-        println!("");
-        for i in 0..14 {
-            for j in 0..32{
-                print!("{} ", parents[i][j]);
-            }
-            println!("");
-        }
-        println!("");
-
-
         // round 1 (14)
         hasher.input(&parents);
 
@@ -251,19 +237,6 @@ where
             &sha2utils::bits256_expand_to_bits512(read_node(4, cache_parents, base_data))[..],
             &sha2utils::bits256_expand_to_bits512(read_node(5, cache_parents, base_data))[..],
         ];
-
-        print!("state: ");
-        for i in 0..8 {
-                print!("{} ", hasher.state[i]);
-        }
-        println!("");
-        for i in 0..6 {
-            for j in 0..32 {
-                print!("{} ", parents[i][j]);
-            }
-            println!("");
-        }
-        println!("");
 
         // round 1 (0..6)
         hasher.input(&parents);
