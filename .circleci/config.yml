@@ -32,6 +32,9 @@ jobs:
       - ensure_filecoin_parameters
       - save_parameter_cache
 
+  # Caches cannot be shared between executors, the cache names have an
+  # executor specific suffix. Hence also create parameter caches for
+  # the GPU instance.
   ensure_groth_parameters_and_keys_linux_gpu:
     executor: gpu
     environment: *setup-env
@@ -512,7 +515,7 @@ commands:
   save_parameter_cache:
     steps:
       - save_cache:
-          key: proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+          key: proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}
           paths:
             - "~/paramcache.awesome"
             - "/tmp/filecoin-proof-parameters/"
@@ -520,7 +523,7 @@ commands:
     steps:
       - restore_cache:
          keys:
-            - proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+            - proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}
 
 workflows:
   version: 2.1
@@ -575,7 +578,7 @@ workflows:
       - test_gpu_tree_building:
           requires:
             - cargo_fetch_gpu
-            - ensure_groth_parameters_and_keys_linux_gpu
+            - ensure_groth_parameters_and_keys_linux
 
       #- test_multicore_sdr:
       #    requires:
