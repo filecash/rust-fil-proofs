@@ -37,15 +37,19 @@ jobs:
     environment: *setup-env
     steps:
       - checkout
-      - attach_workspace:
-          at: "."
-      - set-env-path
-      - restore_cache:
-          keys:
-            - cargo-v28-gpu-i-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
-      - restore_parameter_cache_gpu
-      - ensure_filecoin_parameters_gpu
-      - save_parameter_cache_gpu
+      - restore_parameter_cache
+      - ensure_filecoin_parameters
+      - save_parameter_cache
+      #- checkout
+      #- attach_workspace:
+      #    at: "."
+      #- set-env-path
+      #- restore_cache:
+      #    keys:
+      #      - cargo-v28-gpu-i-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+      #- restore_parameter_cache
+      #- ensure_filecoin_parameters_gpu
+      #- save_parameter_cache
 
   cargo_fetch:
     executor: default
