@@ -420,7 +420,9 @@ commands:
           command: chmod -R 755 ${FIL_PROOFS_PARAMETER_CACHE}
   save_rustup_cache:
     steps:
-      - run: mv .cargo .rustup /tmp/
+      # Move things from the home directory to `/tmp` first, so that it can be
+      # restored on executors that have a different home directory.
+      - run: mv ~/.cargo ~/.rustup /tmp/
       - save_cache:
           name: "Save rustup cache"
           key: cargo-v28-d-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
@@ -428,8 +430,8 @@ commands:
             - /tmp/.cargo
             - /tmp/.rustup
   restore_rustup_cache:
-    - run: mv /tmp/.cargo /tmp/rustup ./
     steps:
+      - run: mv /tmp/.cargo /tmp/.rustup ~/
       - restore_cache:
           name: "Restore rustup cache"
           keys: cargo-v28-d-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
