@@ -165,8 +165,16 @@ jobs:
           at: "."
       - restore_rustup_cache
       - restore_parameter_cache
-      - set-env-path
-      - install-gpu-deps
+      - run:
+          name: Set the PATH env variable
+          command: |
+            echo 'export PATH="~/.cargo/bin:$PATH"' | tee --append $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Install libraries to make thing work on the GPU
+          command: |
+            sudo apt-get update -y
+            sudo apt install -y ocl-icd-opencl-dev libhwloc-dev
       - run:
           name: Test with GPU column and tree builders.
           command: |
@@ -396,22 +404,6 @@ jobs:
           no_output_timeout: 2h
 
 commands:
-  # The PATH cannot be set via `environment` as it doesn't support variable
-  # expansion, hence it couldn't be prepended to the existing `PATH` variable
-  set-env-path:
-    steps:
-      - run:
-          name: Set the PATH env variable
-          command: |
-            echo 'export PATH="~/.cargo/bin:$PATH"' | tee --append $BASH_ENV
-            source $BASH_ENV
-  install-gpu-deps:
-    steps:
-      - run:
-          name: Install libraries for GPU tests
-          command: |
-            sudo apt-get update -y
-            sudo apt install -y ocl-icd-opencl-dev libhwloc-dev
   ensure_filecoin_parameters:
     steps:
       - run:
