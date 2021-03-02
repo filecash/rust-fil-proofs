@@ -91,7 +91,8 @@ impl Sha512 {
         for block in blocks.chunks(2) {
             buffer[..64].copy_from_slice(&block[0]);
             buffer[64..].copy_from_slice(&block[1]);
-            sha512_avx_asm::compress512_avx(&buffer as *const [u8; 128] as *const c_void, state as *mut [u64] as *mut c_void, 1);
+            //sha512_avx_asm::compress512_avx(&buffer as *const [u8; 128] as *const c_void, state as *mut [u64] as *mut c_void, 1);
+            unsafe { sha2_asm::compress512(&mut *(state as *mut _ as *mut [u64; 8]), &buffer); }
         }
     }
 }
