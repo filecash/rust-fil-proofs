@@ -492,6 +492,7 @@ commands:
     steps:
       - run: echo ${FIL_PROOFS_PARAMETER_CACHE}
       - run: ls -l ${FIL_PROOFS_PARAMETER_CACHE}
+      - run: ls -l ${FIL_PROOFS_PARAMETER_CACHE}/..
       - run:
           name: Build paramcache if it doesn't already exist
           command: |
@@ -501,6 +502,9 @@ commands:
           name: Obtain filecoin groth parameters
           command: ~/paramcache.awesome --sector-sizes='2048,4096,16384,32768'
           no_output_timeout: 60m
+      - run:
+          name: Make the parameters world readable
+          command: chmod -R 777 ${FIL_PROOFS_PARAMETER_CACHE}
   save_parameter_cache:
     steps:
       - save_cache:
