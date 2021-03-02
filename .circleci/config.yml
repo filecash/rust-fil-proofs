@@ -490,6 +490,8 @@ commands:
             sudo apt install -y ocl-icd-opencl-dev libhwloc-dev
   ensure_filecoin_parameters:
     steps:
+      - run: echo ${FIL_PROOFS_PARAMETER_CACHE}
+      - run: ls -l ${FIL_PROOFS_PARAMETER_CACHE}
       - run:
           name: Build paramcache if it doesn't already exist
           command: |
