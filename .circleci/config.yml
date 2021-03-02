@@ -523,7 +523,7 @@ workflows:
   test_all:
     jobs:
       #- ensure_groth_parameters_and_keys_linux
-      - ensure_groth_parameters_and_keys_linux_gpu
+      - ensure_groth_parameters_and_keys_linux_gpu:
           requires:
             - cargo_fetch_gpu
       #- cargo_fetch
