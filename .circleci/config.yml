@@ -523,7 +523,7 @@ workflows:
       #    requires:
       #      - cargo_fetch_gpu
       - cargo_fetch
-      #- cargo_fetch_gpu
+      - cargo_fetch_gpu
       #- rustfmt:
       #    requires:
       #      - cargo_fetch
