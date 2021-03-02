@@ -44,9 +44,7 @@ jobs:
           at: "."
       - set-env-path
       - install-gpu-deps
-      - restore_cache:
-          keys:
-            - cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - ensure_filecoin_parameters
       - save_parameter_cache
@@ -60,9 +58,7 @@ jobs:
           name: Calculate dependencies
           command: cargo generate-lockfile
           no_output_timeout: 30m
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - run: rustup install $(cat rust-toolchain)
       - run: rustup default $(cat rust-toolchain)
       - run: rustup install << pipeline.parameters.nightly-toolchain >>
@@ -76,11 +72,7 @@ jobs:
           root: "."
           paths:
             - Cargo.lock
-      - save_cache:
-          key: cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
-          paths:
-            - "~/.cargo"
-            - "~/.rustup"
+      - save_rustup_cache
   cargo_fetch_gpu:
     executor: gpu
     environment: *setup-env
@@ -126,9 +118,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Test (<< parameters.crate >>)
@@ -142,9 +132,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Test in release profile
@@ -169,9 +157,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Test ignored in release profile
@@ -195,9 +181,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Test with use_multicore_sdr pairing enabled
@@ -231,9 +215,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run: ls ${FIL_PROOFS_PARAMETER_CACHE}
       - set-env-path
@@ -259,9 +241,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Test with no gpu (pairing)
@@ -288,9 +268,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Test ignored with blst enabled (<< parameters.crate >>)
@@ -313,9 +291,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
 
       - run:
@@ -335,9 +311,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - restore_parameter_cache
       - run:
           name: Benchmarks
@@ -423,9 +397,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - run:
           name: Run cargo fmt
           command: cargo fmt --all -- --check
@@ -437,9 +409,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
-      - restore_cache:
-          keys:
-            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+      - restore_rustup_cache
       - run:
           name: Run cargo clippy
           command: cargo +$(cat rust-toolchain) clippy --workspace
@@ -512,22 +482,22 @@ commands:
       - run:
           name: Make the parameters world readable
           command: chmod -R 755 ${FIL_PROOFS_PARAMETER_CACHE}
-  #save_rustup_cache:
-  #  steps:
-  #    - save_cache:
-  #        key: proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}
-  #        paths:
-  #          - "~/paramcache.awesome"
-  #          - "/tmp/filecoin-proof-parameters/"
-  #restore_rustup_cache:
-  #  steps:
-  #    - restore_cache:
-  #       keys:
-  #          - proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}
+  save_rustup_cache:
+    steps:
+      - save_cache:
+          key: cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
+          paths:
+            - ".cargo"
+            - ".rustup"
+  restore_rustup_cache:
+    steps:
+      - restore_cache:
+         keys:
+            - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
   save_parameter_cache:
     steps:
       - save_cache:
-          key: proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}
+          key: proof-params-v28-e-{{ checksum "filecoin-proofs/parameters.json" }}
           paths:
             - "/tmp/paramcache.awesome"
             - "/tmp/filecoin-proof-parameters/"
@@ -535,7 +505,7 @@ commands:
     steps:
       - restore_cache:
          keys:
-            - proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}
+            - proof-params-v28-e-{{ checksum "filecoin-proofs/parameters.json" }}
 
 workflows:
   version: 2.1
