@@ -496,7 +496,7 @@ commands:
   save_parameter_cache:
     steps:
       - save_cache:
-          key: proof-params-v28-b-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+          key: proof-params-v28-c-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
           paths:
             - "~/paramcache.awesome"
             - "~/filecoin-proof-parameters/"
@@ -504,11 +504,11 @@ commands:
     steps:
       - restore_cache:
          keys:
-            - proof-params-v28-b-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+            - proof-params-v28-c-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
   save_parameter_cache_gpu:
     steps:
       - save_cache:
-          key: proof-params-v28-gpu-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+          key: proof-params-v28-d-gpu-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
           paths:
             - "~/paramcache.awesome"
             - "~/filecoin-proof-parameters/"
@@ -516,7 +516,7 @@ commands:
     steps:
       - restore_cache:
          keys:
-            - proof-params-v28-gpu-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+            - proof-params-v28-d-gpu-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
 
 workflows:
   version: 2.1
