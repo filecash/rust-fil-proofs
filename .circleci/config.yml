@@ -89,7 +89,7 @@ jobs:
           no_output_timeout: 30m
       - restore_cache:
           keys:
-            - cargo-v28-gpu-d-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+            - cargo-v28-gpu-e-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - run: rustup install $(cat rust-toolchain)
       - run: rustup default $(cat rust-toolchain)
       - run: rustup install << pipeline.parameters.nightly-toolchain >>
@@ -104,7 +104,7 @@ jobs:
           paths:
             - gpuci
       - save_cache:
-          key: cargo-v28-gpu-d-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+          key: cargo-v28-gpu-e-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
           paths:
             - "~/.cargo"
             - "~/.rustup"
@@ -237,7 +237,7 @@ jobs:
             ulimit -u 20000
             ulimit -n 20000
             cd filecoin-proofs
-            ~/.cargo/bin/cargo +<< pipeline.parameters.nightly-toolchain >> -Zpackage-features test --all --verbose --release lifecycle -- --ignored --nocapture
+            cargo +<< pipeline.parameters.nightly-toolchain >> -Zpackage-features test --all --verbose --release lifecycle -- --ignored --nocapture
           no_output_timeout: 30m
           environment:
             RUST_TEST_THREADS: 1
@@ -487,7 +487,7 @@ commands:
           name: Build paramcache if it doesn't already exist
           command: |
             set -x; test -f ~/paramcache.awesome \
-            || (~/.cargo/bin/cargo build --release --workspace && find . -type f -name paramcache | xargs -I {} mv {} ~/paramcache.awesome)
+            || (cargo build --release --workspace && find . -type f -name paramcache | xargs -I {} mv {} ~/paramcache.awesome)
       - run:
           name: Obtain filecoin groth parameters
           command: ~/paramcache.awesome --sector-sizes='2048,4096,16384,32768'
