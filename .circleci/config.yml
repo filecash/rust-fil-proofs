@@ -56,41 +56,6 @@ jobs:
           paths:
             - Cargo.lock
       - save_rustup_cache
-  cargo_fetch_gpu:
-    executor: gpu
-    environment: *setup-env
-    steps:
-      - checkout
-      # The GPU image doesn't have rustup installed
-      - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - set-env-path
-      - run: cargo --version
-      - run: rustc --version
-      - run:
-          name: Calculate dependencies
-          command: cargo generate-lockfile
-          no_output_timeout: 30m
-      - restore_cache:
-          keys:
-            - cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
-      - run: rustup install $(cat rust-toolchain)
-      - run: rustup default $(cat rust-toolchain)
-      - run: rustup install << pipeline.parameters.nightly-toolchain >>
-      - run: rustup component add rustfmt-preview
-      - run: rustup component add clippy
-      - run: cargo update
-      - run: cargo fetch
-      - run: rustc +$(cat rust-toolchain) --version
-      - run: rustup toolchain list --verbose
-      - persist_to_workspace:
-          root: "."
-          paths:
-            - Cargo.lock
-      - save_cache:
-          key: cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}
-          paths:
-            - "~/.cargo"
-            - "~/.rustup"
   test:
     executor: default
     environment: *setup-env
@@ -200,7 +165,6 @@ jobs:
           at: "."
       - restore_rustup_cache
       - restore_parameter_cache
-      - run: ls ${FIL_PROOFS_PARAMETER_CACHE}
       - set-env-path
       - install-gpu-deps
       - run:
@@ -492,11 +456,7 @@ workflows:
   test_all:
     jobs:
       - ensure_groth_parameters_and_keys_linux
-      #- ensure_groth_parameters_and_keys_linux_gpu
-      #    requires:
-      #      - cargo_fetch_gpu
       - cargo_fetch
-      #- cargo_fetch_gpu
       #- rustfmt:
       #    requires:
       #      - cargo_fetch
