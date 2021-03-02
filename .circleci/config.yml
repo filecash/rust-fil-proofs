@@ -526,222 +526,222 @@ workflows:
       - ensure_groth_parameters_and_keys_linux_gpu:
           requires:
             - cargo_fetch_gpu
-      - cargo_fetch
+      #- cargo_fetch
       - cargo_fetch_gpu
-      - rustfmt:
-          requires:
-            - cargo_fetch
-      - clippy:
-          requires:
-            - cargo_fetch
-
-      - test_release:
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-            
-      - test_ignored_release:
-          name: test_ignored_release_storage_proofs_post
-          crate: "storage-proofs-post"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-            
-      - test_ignored_release:
-          name: test_ignored_release_storage_proofs_core
-          crate: "storage-proofs-core"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-            
-      - test_ignored_release:
-          name: test_ignored_release_storage_proofs_porep
-          crate: "storage-proofs-porep"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-            
-      - test_ignored_release:
-          name: test_ignored_release_filecoin_proofs
-          crate: "filecoin-proofs"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
+      #- rustfmt:
+      #    requires:
+      #      - cargo_fetch
+      #- clippy:
+      #    requires:
+      #      - cargo_fetch
+      #
+      #- test_release:
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #      
+      #- test_ignored_release:
+      #    name: test_ignored_release_storage_proofs_post
+      #    crate: "storage-proofs-post"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #      
+      #- test_ignored_release:
+      #    name: test_ignored_release_storage_proofs_core
+      #    crate: "storage-proofs-core"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #      
+      #- test_ignored_release:
+      #    name: test_ignored_release_storage_proofs_porep
+      #    crate: "storage-proofs-porep"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #      
+      #- test_ignored_release:
+      #    name: test_ignored_release_filecoin_proofs
+      #    crate: "filecoin-proofs"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
       - test_gpu_tree_building:
           requires:
             - cargo_fetch_gpu
             - ensure_groth_parameters_and_keys_linux_gpu
-
-      - test_multicore_sdr:
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst:
-          name: test_blst_filecoin_proofs
-          crate: "filecoin-proofs"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst_ignored:
-          name: test_blst_ignored_filecoin_proofs
-          crate: "filecoin-proofs"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_filecoin_proofs
-          crate: "filecoin-proofs"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst:
-          name: test_blst_storage_proofs_core
-          crate: "storage-proofs-core"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst_ignored:
-          name: test_blst_ignored_storage_proofs_core
-          crate: "storage-proofs-core"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_storage_proofs_core
-          crate: "storage-proofs-core"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst:
-          name: test_blst_storage_proofs_post
-          crate: "storage-proofs-post"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst_ignored:
-          name: test_blst_ignored_storage_proofs_post
-          crate: "storage-proofs-post"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_storage_proofs_post
-          crate: "storage-proofs-post"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-
-      - test_blst:
-          name: test_blst_storage_proofs_porep
-          crate: "storage-proofs-porep"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_blst_ignored:
-          name: test_blst_ignored_storage_proofs_porep
-          crate: "storage-proofs-porep"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_storage_proofs_porep
-          crate: "storage-proofs-porep"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-
-      - test_blst:
-          name: test_blst_fil_proofs_tooling
-          crate: "fil-proofs-tooling"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_fil_proofs_tooling
-          crate: "fil-proofs-tooling"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_sha2raw
-          crate: "sha2raw"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-            
-      - test_blst:
-          name: test_blst_filecoin_hashers
-          crate: "filecoin-hashers"
-          features: "blst,gpu,poseidon,sha256,blake2s"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_filecoin_hashers
-          crate: "filecoin-hashers"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-
-      - test_blst:
-          name: test_blst_fil_proofs_param
-          crate: "fil-proofs-param"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test:
-          name: test_fil_proofs_param
-          crate: "fil-proofs-param"
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - test_no_gpu:
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-
-      - bench:
-          requires:
-            - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
-      - test_darwin
-      - metrics_capture:
-          requires:
-            - cargo_fetch
-          filters:
-            branches:
-              only:
-                - master
-
-      - test:
-          name: test_fr32
-          crate: "fr32"
-          requires:
-            - cargo_fetch
-
-      - test_blst:
-          name: test_blst_fr32
-          crate: "fr32"
-          requires:
-            - cargo_fetch
+      #
+      #- test_multicore_sdr:
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst:
+      #    name: test_blst_filecoin_proofs
+      #    crate: "filecoin-proofs"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst_ignored:
+      #    name: test_blst_ignored_filecoin_proofs
+      #    crate: "filecoin-proofs"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_filecoin_proofs
+      #    crate: "filecoin-proofs"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst:
+      #    name: test_blst_storage_proofs_core
+      #    crate: "storage-proofs-core"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst_ignored:
+      #    name: test_blst_ignored_storage_proofs_core
+      #    crate: "storage-proofs-core"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_storage_proofs_core
+      #    crate: "storage-proofs-core"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst:
+      #    name: test_blst_storage_proofs_post
+      #    crate: "storage-proofs-post"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst_ignored:
+      #    name: test_blst_ignored_storage_proofs_post
+      #    crate: "storage-proofs-post"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_storage_proofs_post
+      #    crate: "storage-proofs-post"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #
+      #- test_blst:
+      #    name: test_blst_storage_proofs_porep
+      #    crate: "storage-proofs-porep"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_blst_ignored:
+      #    name: test_blst_ignored_storage_proofs_porep
+      #    crate: "storage-proofs-porep"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_storage_proofs_porep
+      #    crate: "storage-proofs-porep"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #
+      #- test_blst:
+      #    name: test_blst_fil_proofs_tooling
+      #    crate: "fil-proofs-tooling"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_fil_proofs_tooling
+      #    crate: "fil-proofs-tooling"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_sha2raw
+      #    crate: "sha2raw"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #      
+      #- test_blst:
+      #    name: test_blst_filecoin_hashers
+      #    crate: "filecoin-hashers"
+      #    features: "blst,gpu,poseidon,sha256,blake2s"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_filecoin_hashers
+      #    crate: "filecoin-hashers"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #
+      #- test_blst:
+      #    name: test_blst_fil_proofs_param
+      #    crate: "fil-proofs-param"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test:
+      #    name: test_fil_proofs_param
+      #    crate: "fil-proofs-param"
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- test_no_gpu:
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #
+      #- bench:
+      #    requires:
+      #      - cargo_fetch
+      #      - ensure_groth_parameters_and_keys_linux
+      #- test_darwin
+      #- metrics_capture:
+      #    requires:
+      #      - cargo_fetch
+      #    filters:
+      #      branches:
+      #        only:
+      #          - master
+      #
+      #- test:
+      #    name: test_fr32
+      #    crate: "fr32"
+      #    requires:
+      #      - cargo_fetch
+      #
+      #- test_blst:
+      #    name: test_blst_fr32
+      #    crate: "fr32"
+      #    requires:
+      #      - cargo_fetch
