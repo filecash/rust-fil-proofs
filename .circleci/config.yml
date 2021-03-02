@@ -37,6 +37,7 @@ jobs:
     environment: *setup-env
     steps:
       - checkout
+      - cargo_fetch_gpu
       - restore_parameter_cache_gpu
       - ensure_filecoin_parameters_gpu
       - save_parameter_cache_gpu
@@ -523,9 +524,9 @@ workflows:
   test_all:
     jobs:
       #- ensure_groth_parameters_and_keys_linux
-      - ensure_groth_parameters_and_keys_linux_gpu:
-          requires:
-            - cargo_fetch_gpu
+      - ensure_groth_parameters_and_keys_linux_gpu
+          #requires:
+          #  - cargo_fetch_gpu
       #- cargo_fetch
       - cargo_fetch_gpu
       #- rustfmt:
