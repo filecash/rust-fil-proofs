@@ -18,7 +18,7 @@ executors:
     resource_class: gpu.nvidia.medium
 
 setup-env: &setup-env
-  FIL_PROOFS_PARAMETER_CACHE: "/root/filecoin-proof-parameters/"
+  FIL_PROOFS_PARAMETER_CACHE: "/tmp/filecoin-proof-parameters/"
   RUST_LOG: trace
 
 
@@ -505,19 +505,19 @@ commands:
           no_output_timeout: 60m
       - run:
           name: Make the parameters world readable
-          command: chmod -R 777 ${FIL_PROOFS_PARAMETER_CACHE}
+          command: chmod -R 755 ${FIL_PROOFS_PARAMETER_CACHE}
   save_parameter_cache:
     steps:
       - save_cache:
-          key: proof-params-v28-c-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+          key: proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
           paths:
             - "~/paramcache.awesome"
-            - "~/filecoin-proof-parameters/"
+            - "/tmp/filecoin-proof-parameters/"
   restore_parameter_cache:
     steps:
       - restore_cache:
          keys:
-            - proof-params-v28-c-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
+            - proof-params-v28-d-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
 
 workflows:
   version: 2.1
