@@ -542,8 +542,8 @@ workflows:
       - ensure_groth_parameters_and_keys_linux_gpu:
           requires:
             - cargo_fetch
-      #- cargo_fetch
-      - cargo_fetch_gpu
+      - cargo_fetch
+      #- cargo_fetch_gpu
       #- rustfmt:
       #    requires:
       #      - cargo_fetch
