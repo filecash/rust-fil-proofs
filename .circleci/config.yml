@@ -52,10 +52,6 @@ jobs:
     environment: *setup-env
     steps:
       - checkout
-      # This step is only needed for the GPU instance that doesn't have rustup
-      # installed, though it also doesn't do any harm on other instances
-      - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - set-env-path
       - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
@@ -86,6 +82,7 @@ jobs:
     environment: *setup-env
     steps:
       - checkout
+      # The GPU image doesn't have rustup installed
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - set-env-path
       - run: cargo --version
@@ -541,9 +538,9 @@ workflows:
       #- ensure_groth_parameters_and_keys_linux
       - ensure_groth_parameters_and_keys_linux_gpu:
           requires:
-            - cargo_fetch
-      - cargo_fetch
-      #- cargo_fetch_gpu
+            - cargo_fetch_gpu
+      #- cargo_fetch
+      - cargo_fetch_gpu
       #- rustfmt:
       #    requires:
       #      - cargo_fetch
