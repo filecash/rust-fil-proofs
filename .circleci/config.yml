@@ -39,6 +39,10 @@ jobs:
       - checkout
       - attach_workspace:
           at: "."
+      - run: echo 'export PATH="$HOME:~/.cargo/bin:$PATH"' >> $BASH_ENV
+      - run: echo $BASH_ENV
+      - run: echo $HOME
+      - run: source $BASH_ENV
       - restore_cache:
           keys:
             - cargo-v28-gpu-f-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
