@@ -55,9 +55,10 @@ jobs:
       - attach_workspace:
           at: "."
       - set-env-path
+      - install-gpu-deps
       - restore_cache:
           keys:
-            - cargo-v28-gpu-j-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+            - cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - ensure_filecoin_parameters
 
   cargo_fetch:
@@ -97,13 +98,6 @@ jobs:
       - checkout
       # The GPU image doesn't have rustup installed
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - run:
-          name: Install opencl and hwlock
-          command: |
-            sudo apt-get update -y
-            apt-cache search opencl
-            sudo apt install -y ocl-icd-opencl-dev
-            sudo apt install hwloc libhwloc-dev
       - set-env-path
       - run: cargo --version
       - run: rustc --version
@@ -113,7 +107,7 @@ jobs:
           no_output_timeout: 30m
       - restore_cache:
           keys:
-            - cargo-v28-gpu-j-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+            - cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - run: rustup install $(cat rust-toolchain)
       - run: rustup default $(cat rust-toolchain)
       - run: rustup install << pipeline.parameters.nightly-toolchain >>
@@ -128,7 +122,7 @@ jobs:
           paths:
             - Cargo.lock
       - save_cache:
-          key: cargo-v28-gpu-j-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+          key: cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
           paths:
             - "~/.cargo"
             - "~/.rustup"
@@ -249,7 +243,7 @@ jobs:
           at: "."
       - restore_cache:
           keys:
-            - cargo-v28-gpu-j-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+            - cargo-v28-gpu-k-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - restore_parameter_cache
       - run:
           name: Test with GPU column and tree builders.
@@ -501,6 +495,13 @@ commands:
           command: |
             echo 'export PATH="~/.cargo/bin:$PATH"' | tee --append $BASH_ENV
             source $BASH_ENV
+  install-gpu-deps:
+    steps:
+      - run:
+          name: Install libraries for GPU tests
+          command: |
+            sudo apt-get update -y
+            sudo apt install -y ocl-icd-opencl-dev libhwloc-dev
   ensure_filecoin_parameters:
     steps:
       - run:
