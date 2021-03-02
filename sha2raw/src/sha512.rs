@@ -2,12 +2,14 @@ use byteorder::{ByteOrder, BE};
 
 use crate::consts::H512;
 use crate::platform::Implementation;
+use crate::sha512_avx_asm;
+use std::ffi::c_void;
 
 lazy_static::lazy_static! {
     static ref IMPL: Implementation = Implementation::detect();
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy)]
 pub struct Sha512 {
     pub len: (u64, u64),
     pub state: [u64; 8],
@@ -82,6 +84,15 @@ impl Sha512 {
         let mut out = [0u8; 64];
         BE::write_u64_into(&self.state, &mut out);
         out
+    }
+
+    pub fn compress512(state: &mut [u64], blocks: &[&[u8]]) {
+        let mut buffer = [0u8; 128];
+        for block in blocks.chunks(2) {
+            buffer[..64].copy_from_slice(&block[0]);
+            buffer[64..].copy_from_slice(&block[1]);
+            sha512_avx_asm::compress512_avx(&buffer as *const [u8; 128] as *const c_void, state as *mut [u64] as *mut c_void, 1);
+        }
     }
 }
 

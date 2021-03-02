@@ -5,7 +5,7 @@ fn main() {
 
     let mut build512 = cc::Build::new();
     let sha512_path = if target_arch == "x86_64" {
-        "src/sha512_avx_asm.S"
+        "src/sha512-avx2-asm.S"
     }else {
         panic!("Unsupported target architecture");
     };

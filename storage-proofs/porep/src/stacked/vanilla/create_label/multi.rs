@@ -45,15 +45,15 @@ const MIN_BASE_PARENT_NODE: u64 = 2000;
 const NODE_WORDS: usize = NODE_SIZE / size_of::<u32>();
 const SHA_BLOCK_SIZE: usize = 64;
 
-const SHA256_INITIAL_DIGEST: [u32; 8] = [
-    0x6a09_e667,
-    0xbb67_ae85,
-    0x3c6_ef372,
-    0xa54f_f53a,
-    0x510e_527f,
-    0x9b05_688c,
-    0x1f83_d9ab,
-    0x5be0_cd19,
+const SHA512_INITIAL_DIGEST: [u64; 8] = [
+    0x6a09e667f3bcc908,
+    0xbb67ae8584caa73b,
+    0x3c6ef372fe94f82b,
+    0xa54ff53a5f1d36f1,
+    0x510e527fade682d1,
+    0x9b05688c2b3e6c1f,
+    0x1f83d9abfb41bd6b,
+    0x5be0cd19137e2179,
 ];
 
 #[inline]
@@ -65,7 +65,7 @@ fn fill_buffer(
     exp_labels: Option<&UnsafeSlice<u32>>, // None for layer0
     buf: &mut [u8],
     base_parent_missing: &mut BitMask,
-    hasher: &UnsafeSlice<Sha512>,
+    hasher: &UnsafeSlice<u64>,
 ) {
     let cur_node_swap = cur_node.to_be_bytes(); // Note switch to big endian
     buf[36..44].copy_from_slice(&cur_node_swap); // update buf with current node
@@ -74,13 +74,29 @@ fn fill_buffer(
     let cur_node_ptr =
         unsafe { &mut layer_labels.as_mut_slice()[cur_node as usize * NODE_WORDS as usize..] };
 
+    let cur_sha512_ptr = 
+        unsafe { &mut hasher.as_mut_slice()[cur_node as usize * 8 as usize..] };
+
     //cur_node_ptr[..8].copy_from_slice(&SHA256_INITIAL_DIGEST);
     //compress256!(cur_node_ptr, buf, 1);
-    let hasher = unsafe { &mut hasher.as_mut_slice() };
+    //let hasher = unsafe { &mut hasher.as_mut_slice() };
 
     let mut buffer = [0u8; 64];
     buffer[..12].copy_from_slice(&buf[32..44]);
-    hasher[cur_node as usize].input(&[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
+    //hasher[cur_node as usize].input(&[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
+    cur_sha512_ptr[..8].copy_from_slice(&SHA512_INITIAL_DIGEST);
+    Sha512::compress512(&mut cur_sha512_ptr[..8], &[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
+    /*println!("input:");
+    for _i in 0..64 {
+        print!("{} ", buf[_i]);
+    }
+    println!("");
+
+    print!("state: ");
+    for _i in 0..8 {
+        print!("{} ", cur_sha512_ptr[_i]);
+    }
+    println!("");*/
 
     // Fill in the base parents
     // Node 5 (prev node) will always be missing, and there tend to be
@@ -158,7 +174,7 @@ fn create_label_runner(
     lookahead: u64,
     ring_buf: &RingBuf,
     base_parent_missing: &UnsafeSlice<BitMask>,
-    hasher: &UnsafeSlice<Sha512>,
+    hasher: &UnsafeSlice<u64>,
 ) -> Result<()> {
     info!("created label runner");
     // Label data bytes per node
@@ -258,7 +274,7 @@ fn create_layer_labels(
         exp_labels.map(|m| UnsafeSlice::from_slice(m.as_mut_slice_of::<u32>().unwrap()));
     let base_parent_missing = UnsafeSlice::from_slice(&mut base_parent_missing);
 
-    let mut sha512_krls = vec![Sha512::new(); num_nodes as usize];
+    let mut sha512_krls = vec![0u64; (num_nodes * 8) as usize];
     let sha512_labels =  UnsafeSlice::from_slice(&mut sha512_krls);
 
     thread::scope(|s| {
@@ -317,9 +333,27 @@ fn create_layer_labels(
 
         let mut buffer = [0u8; 64];
         buffer[..12].copy_from_slice(&buf[32..44]);
-        hasher[0].input(&[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
-        let hash = hasher[0].finish();
-        BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
+        //hasher[0].input(&[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
+        //let hash = hasher[0].finish();
+        hasher[..8].copy_from_slice(&SHA512_INITIAL_DIGEST);
+        Sha512::compress512(&mut hasher[..8], &[&sha2utils::bits256_expand_to_bits512(&buf[..32]), &buffer[..]][..]);
+        let block0 = [128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let block1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0];
+        Sha512::compress512(&mut hasher[..8], &[&block0[..], &block1[..]]);
+        BE::write_u64_into(&hasher[..8], &mut buffer);
+        BE::read_u32_into(&buffer[..32], &mut cur_node_ptr[..8]);
+
+        /*println!("input:");
+        for _i in 0..64 {
+            print!("{} ", buf[_i]);
+        }
+        println!("");
+
+        println!("output:");
+        for _i in 0..32 {
+            print!("{} ", buffer[_i]);
+        }
+        println!("");*/
 
         // Fix endianess
         cur_node_ptr[..8].iter_mut().for_each(|x| *x = x.to_be());
@@ -398,9 +432,29 @@ fn create_layer_labels(
                         &sha2utils::bits256_expand_to_bits512(&buf[224..256])[..],
                     ];
 
+                    let start = i as usize * 8;
+                    let end = start + 8;
+
+                    /*println!("state:");
+                    for _i in 0..8 {
+                        print!("{} ", hasher[start + _i]);
+                    }
+                    println!("");
+
+                    println!("input:");
+                    for _i in 0..6 {
+                        for _j in 0..32 {
+                            print!("{} ", parents[_i][_j]);
+                        }
+                        println!("");
+                    }
+                    println!("");
+                    println!("");*/
+
                     for _j in 0..6 {
                         //compress256!(cur_node_ptr, &buf[64..], 3);
-                        hasher[i as usize].input(&parents);
+                        //hasher[i as usize].input(&parents);
+                        Sha512::compress512(&mut hasher[start..end], &parents);
                     }
 
                     // round 7 is only first parent
@@ -408,15 +462,27 @@ fn create_layer_labels(
                     buf[96] = 0x80; // Padding
                     buf[126] = 0x27; // Length (0x2700 = 9984 bits -> 1248 bytes)
                     //compress256!(cur_node_ptr, &buf[64..], 1);
-                    let parents = [
-                        &sha2utils::bits256_expand_to_bits512(&buf[64..96])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[96..128])[..],
-                    ];
 
                     //hasher[i as usize].input(&parents);
                     //let hash = hasher[i as usize].finish();
-                    let hash = hasher[i as usize].finish_with(&parents[0]);
-                    BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
+                    //let hash = hasher[i as usize].finish_with(&parents[0]);
+                    //BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
+                    let block0 = sha2utils::bits256_expand_to_bits512(&buf[64..96]);
+                    let block1 = [128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 78, 0];
+                    /*print!("state2: ");
+                    for _i in 0..8 {
+                        print!("{} ", hasher[start + _i]);
+                    }
+                    println!("");*/
+                    Sha512::compress512(&mut hasher[start..end], &[&block0[..], &block1[..]][..]);
+                    BE::write_u64_into(&hasher[start..end], &mut buffer);
+                    BE::read_u32_into(&buffer[..32], &mut cur_node_ptr[..8]);
+                    /*println!("output:");
+                    for _i in 0..32 {
+                        print!("{} ", buffer[_i]);
+                    }
+                    println!("");
+                    println!("");*/
 
                 } else {
                     // Two rounds of all parents
@@ -449,33 +515,59 @@ fn create_layer_labels(
                         &sha2utils::bits256_expand_to_bits512(&buf[480..512])[..],
                     ];
 
-                    hasher[i as usize].input(&parents);
-                    hasher[i as usize].input(&parents);
+                    let start = i as usize * 8;
+                    let end = start + 8;
+
+                    /*print!("state: ");
+                    for _i in 0..8 {
+                        print!("{} ", hasher[start + _i]);
+                    }
+                    println!("");
+
+                    println!("input");
+                    for _i in 0..14 {
+                        for _j in 0..32 {
+                            print!("{} ", parents[_i][_j]);
+                        }
+                        println!("");
+                    }
+                    println!("");
+                    println!("");*/
+
+                    //hasher[i as usize].input(&parents);
+                    //hasher[i as usize].input(&parents);
+                    Sha512::compress512(&mut hasher[start..end], &parents);
+                    Sha512::compress512(&mut hasher[start..end], &parents);
 
                     // Final round is only nine parents
                     memset(&mut buf[352..384], 0); // Zero out upper half of last block
                     buf[352] = 0x80; // Padding
                     buf[382] = 0x27; // Length (0x2700 = 9984 bits -> 1248 bytes)
                     //compress256!(cur_node_ptr, &buf[64..], 5);
-                    let parents = [
-                        &sha2utils::bits256_expand_to_bits512(&buf[64..96])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[96..128])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[128..160])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[160..192])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[192..224])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[224..256])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[256..288])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[288..320])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[320..352])[..],
-                        &sha2utils::bits256_expand_to_bits512(&buf[352..384])[..],
-                    ];
 
                     //hasher[i as usize].input(&parents);
                     //let hash = hasher[i as usize].finish();
-                    hasher[i as usize].input(&parents[..8]);
-                    let hash =  hasher[i as usize].finish_with(&parents[8]);
-                    BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
+                    //hasher[i as usize].input(&parents[..8]);
+                    //let hash =  hasher[i as usize].finish_with(&parents[8]);
+                    //BE::read_u32_into(&hash[..32][..], &mut cur_node_ptr[..8]);
+                    Sha512::compress512(&mut hasher[start..end], &parents[..8]);
+                    let block0 = sha2utils::bits256_expand_to_bits512(&buf[320..352]);
+                    let block1 = [128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 78, 0];
+                    /*print!("state2: ");
+                    for _i in 0..8 {
+                        print!("{} ", hasher[start + _i]);
+                    }
+                    println!("");*/
+                    Sha512::compress512(&mut hasher[start..end], &[&block0[..], &block1[..]][..]);
+                    BE::write_u64_into(&hasher[start..end], &mut buffer);
+                    BE::read_u32_into(&buffer[..32], &mut cur_node_ptr[..8]);
 
+                    /*println!("output:");
+                    for _i in 0..32{
+                        print!("{} ", buffer[_i]);
+                    }
+                    println!("");
+                    println!("");*/
                 }
 
                 // Fix endianess

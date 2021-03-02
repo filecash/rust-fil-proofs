@@ -1,277 +1,59 @@
 ########################################################################
-# Implement SHA512 with AVX instructions. (x86_64)
+# Implement fast SHA-512 with AVX instructions. (x86_64)
+#
+# Copyright (C) 2013 Intel Corporation.
+#
+# Authors:
+#     James Guilford <james.guilford@intel.com>
+#     Kirk Yap <kirk.s.yap@intel.com>
+#     David Cote <david.m.cote@intel.com>
+#     Tim Chen <tim.c.chen@linux.intel.com>
+#
+# This software is available to you under a choice of one of two
+# licenses.  You may choose to be licensed under the terms of the GNU
+# General Public License (GPL) Version 2, available from the file
+# COPYING in the main directory of this source tree, or the
+# OpenIB.org BSD license below:
+#
+#     Redistribution and use in source and binary forms, with or
+#     without modification, are permitted provided that the following
+#     conditions are met:
+#
+#      - Redistributions of source code must retain the above
+#        copyright notice, this list of conditions and the following
+#        disclaimer.
+#
+#      - Redistributions in binary form must reproduce the above
+#        copyright notice, this list of conditions and the following
+#        disclaimer in the documentation and/or other materials
+#        provided with the distribution.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
 ########################################################################
-
-#ifdef HAS_AVX
-#ifndef ENTRY
-#define ENTRY(name) \
-        .globl name             ; \
-        .align 4,0x90           ; \
-        name:
-#endif
-
-#ifndef END
-#define END(name) \
-        .size name, .-name
-#endif
-
-#ifndef ENDPROC
-#define ENDPROC(name) \
-        .type name, @function   ; \
-        END(name)
-#endif
-
-#define NUM_INVALID		100
-
-#define TYPE_R32		0
-#define TYPE_R64		1
-#define TYPE_XMM		2
-#define TYPE_INVALID	100
-
-	.macro R32_NUM opd r32
-	\opd = NUM_INVALID
-	.ifc \r32,%eax
-	\opd = 0
-	.endif
-	.ifc \r32,%ecx
-	\opd = 1
-	.endif
-	.ifc \r32,%edx
-	\opd = 2
-	.endif
-	.ifc \r32,%ebx
-	\opd = 3
-	.endif
-	.ifc \r32,%esp
-	\opd = 4
-	.endif
-	.ifc \r32,%ebp
-	\opd = 5
-	.endif
-	.ifc \r32,%esi
-	\opd = 6
-	.endif
-	.ifc \r32,%edi
-	\opd = 7
-	.endif
-#ifdef X86_64
-	.ifc \r32,%r8d
-	\opd = 8
-	.endif
-	.ifc \r32,%r9d
-	\opd = 9
-	.endif
-	.ifc \r32,%r10d
-	\opd = 10
-	.endif
-	.ifc \r32,%r11d
-	\opd = 11
-	.endif
-	.ifc \r32,%r12d
-	\opd = 12
-	.endif
-	.ifc \r32,%r13d
-	\opd = 13
-	.endif
-	.ifc \r32,%r14d
-	\opd = 14
-	.endif
-	.ifc \r32,%r15d
-	\opd = 15
-	.endif
-#endif
-	.endm
-
-	.macro R64_NUM opd r64
-	\opd = NUM_INVALID
-#ifdef X86_64
-	.ifc \r64,%rax
-	\opd = 0
-	.endif
-	.ifc \r64,%rcx
-	\opd = 1
-	.endif
-	.ifc \r64,%rdx
-	\opd = 2
-	.endif
-	.ifc \r64,%rbx
-	\opd = 3
-	.endif
-	.ifc \r64,%rsp
-	\opd = 4
-	.endif
-	.ifc \r64,%rbp
-	\opd = 5
-	.endif
-	.ifc \r64,%rsi
-	\opd = 6
-	.endif
-	.ifc \r64,%rdi
-	\opd = 7
-	.endif
-	.ifc \r64,%r8
-	\opd = 8
-	.endif
-	.ifc \r64,%r9
-	\opd = 9
-	.endif
-	.ifc \r64,%r10
-	\opd = 10
-	.endif
-	.ifc \r64,%r11
-	\opd = 11
-	.endif
-	.ifc \r64,%r12
-	\opd = 12
-	.endif
-	.ifc \r64,%r13
-	\opd = 13
-	.endif
-	.ifc \r64,%r14
-	\opd = 14
-	.endif
-	.ifc \r64,%r15
-	\opd = 15
-	.endif
-#endif
-	.endm
-
-	.macro XMM_NUM opd xmm
-	\opd = NUM_INVALID
-	.ifc \xmm,%xmm0
-	\opd = 0
-	.endif
-	.ifc \xmm,%xmm1
-	\opd = 1
-	.endif
-	.ifc \xmm,%xmm2
-	\opd = 2
-	.endif
-	.ifc \xmm,%xmm3
-	\opd = 3
-	.endif
-	.ifc \xmm,%xmm4
-	\opd = 4
-	.endif
-	.ifc \xmm,%xmm5
-	\opd = 5
-	.endif
-	.ifc \xmm,%xmm6
-	\opd = 6
-	.endif
-	.ifc \xmm,%xmm7
-	\opd = 7
-	.endif
-	.ifc \xmm,%xmm8
-	\opd = 8
-	.endif
-	.ifc \xmm,%xmm9
-	\opd = 9
-	.endif
-	.ifc \xmm,%xmm10
-	\opd = 10
-	.endif
-	.ifc \xmm,%xmm11
-	\opd = 11
-	.endif
-	.ifc \xmm,%xmm12
-	\opd = 12
-	.endif
-	.ifc \xmm,%xmm13
-	\opd = 13
-	.endif
-	.ifc \xmm,%xmm14
-	\opd = 14
-	.endif
-	.ifc \xmm,%xmm15
-	\opd = 15
-	.endif
-	.endm
-
-	.macro TYPE type reg
-	R32_NUM reg_type_r32 \reg
-	R64_NUM reg_type_r64 \reg
-	XMM_NUM reg_type_xmm \reg
-	.if reg_type_r64 <> NUM_INVALID
-	\type = TYPE_R64
-	.elseif reg_type_r32 <> NUM_INVALID
-	\type = TYPE_R32
-	.elseif reg_type_xmm <> NUM_INVALID
-	\type = TYPE_XMM
-	.else
-	\type = TYPE_INVALID
-	.endif
-	.endm
-
-	.macro PFX_OPD_SIZE
-	.byte 0x66
-	.endm
-
-	.macro PFX_REX opd1 opd2 W=0
-	.if ((\opd1 | \opd2) & 8) || \W
-	.byte 0x40 | ((\opd1 & 8) >> 3) | ((\opd2 & 8) >> 1) | (\W << 3)
-	.endif
-	.endm
-
-	.macro MODRM mod opd1 opd2
-	.byte \mod | (\opd1 & 7) | ((\opd2 & 7) << 3)
-	.endm
-
-	.macro PSHUFB_XMM xmm1 xmm2
-	XMM_NUM pshufb_opd1 \xmm1
-	XMM_NUM pshufb_opd2 \xmm2
-	PFX_OPD_SIZE
-	PFX_REX pshufb_opd1 pshufb_opd2
-	.byte 0x0f, 0x38, 0x00
-	MODRM 0xc0 pshufb_opd1 pshufb_opd2
-	.endm
-
-	.macro PCLMULQDQ imm8 xmm1 xmm2
-	XMM_NUM clmul_opd1 \xmm1
-	XMM_NUM clmul_opd2 \xmm2
-	PFX_OPD_SIZE
-	PFX_REX clmul_opd1 clmul_opd2
-	.byte 0x0f, 0x3a, 0x44
-	MODRM 0xc0 clmul_opd1 clmul_opd2
-	.byte \imm8
-	.endm
-
-	.macro PEXTRD imm8 xmm gpr
-	R32_NUM extrd_opd1 \gpr
-	XMM_NUM extrd_opd2 \xmm
-	PFX_OPD_SIZE
-	PFX_REX extrd_opd1 extrd_opd2
-	.byte 0x0f, 0x3a, 0x16
-	MODRM 0xc0 extrd_opd1 extrd_opd2
-	.byte \imm8
-	.endm
-
-	.macro MOVQ_R64_XMM opd1 opd2
-	TYPE movq_r64_xmm_opd1_type \opd1
-	.if movq_r64_xmm_opd1_type == TYPE_XMM
-	XMM_NUM movq_r64_xmm_opd1 \opd1
-	R64_NUM movq_r64_xmm_opd2 \opd2
-	.else
-	R64_NUM movq_r64_xmm_opd1 \opd1
-	XMM_NUM movq_r64_xmm_opd2 \opd2
-	.endif
-	PFX_OPD_SIZE
-	PFX_REX movq_r64_xmm_opd1 movq_r64_xmm_opd2 1
-	.if movq_r64_xmm_opd1_type == TYPE_XMM
-	.byte 0x0f, 0x7e
-	.else
-	.byte 0x0f, 0x6e
-	.endif
-	MODRM 0xc0 movq_r64_xmm_opd1 movq_r64_xmm_opd2
-	.endm
+#
+# This code is described in an Intel White-Paper:
+# "Fast SHA-512 Implementations on Intel Architecture Processors"
+#
+# To find it, surf to http://www.intel.com/p/en_US/embedded
+# and search for that title.
+#
+########################################################################
 
 .text
 
 # Virtual Registers
 # ARG1
-msg	= %rdi
+digest	= %rdi
 # ARG2
-digest	= %rsi
+msg	= %rsi
 # ARG3
 msglen	= %rdx
 T1	= %rcx
@@ -300,6 +82,10 @@ frame_WK = frame_W + W_SIZE
 frame_RSPSAVE = frame_WK + WK_SIZE
 frame_GPRSAVE = frame_RSPSAVE + RSPSAVE_SIZE
 frame_size = frame_GPRSAVE + GPRSAVE_SIZE
+
+# Useful QWORD "arrays" for simpler memory references
+# MSG, DIGEST, K_t, W_t are arrays
+# WK_2(t) points to 1 of 2 qwords at frame.WK depdending on t being odd/even
 
 # Input message (arg1)
 #define MSG(i)    8*i(msg)
@@ -369,6 +155,21 @@ frame_size = frame_GPRSAVE + GPRSAVE_SIZE
 .endm
 
 .macro SHA512_2Sched_2Round_avx rnd
+	# Compute rounds t-2 and t-1
+	# Compute message schedule QWORDS t and t+1
+
+	#   Two rounds are computed based on the values for K[t-2]+W[t-2] and
+	# K[t-1]+W[t-1] which were previously stored at WK_2 by the message
+	# scheduler.
+	#   The two new schedule QWORDS are stored at [W_t(t)] and [W_t(t+1)].
+	# They are then added to their respective SHA512 constants at
+	# [K_t(t)] and [K_t(t+1)] and stored at dqword [WK_2(t)]
+	#   For brievity, the comments following vectored instructions only refer to
+	# the first of a pair of QWORDS.
+	# Eg. XMM4=W[t-2] really means XMM4={W[t-2]|W[t-1]}
+	#   The computation of the message schedule and the rounds are tightly
+	# stitched to take advantage of instruction-level parallelism.
+
 	idx = \rnd - 2
 	vmovdqa	W_t(idx), %xmm4		# XMM4 = W[t-2]
 	idx = \rnd - 15
@@ -467,13 +268,17 @@ frame_size = frame_GPRSAVE + GPRSAVE_SIZE
 .endm
 
 ########################################################################
-# void sha512_with_avx(const void* M, void* D, u64 L)
-# Purpose: Updates the SHA512 digest stored at D with the message stored in M.
-# The size of the message pointed to by M must be an integer multiple of SHA512
-# message blocks.
-# L is the message length in SHA512 blocks
+# void sha512_transform_avx(sha512_state *state, const u8 *data, int blocks)
+# Purpose: Updates the SHA512 digest stored at "state" with the message
+# stored in "data".
+# The size of the message pointed to by "data" must be an integer multiple
+# of SHA512 message blocks.
+# "blocks" is the message length in SHA512 blocks
 ########################################################################
-ENTRY(sha512_with_avx)
+# SYM_FUNC_START(sha512_transform_avx)
+.globl sha512_transform_avx
+.align 4,0x90;
+sha512_transform_avx:	
 	cmp $0, msglen
 	je nowork
 
@@ -561,19 +366,25 @@ updateblock:
 
 nowork:
 	ret
-ENDPROC(sha512_with_avx)
+#SYM_FUNC_END(sha512_transform_avx)
+.type sha512_transform_avx 2;
+.size sha512_transform_avx, .-sha512_transform_avx
 
 ########################################################################
 ### Binary Data
 
-.data
-
+.section	.rodata.cst16.XMM_QWORD_BSWAP, "aM", @progbits, 16
 .align 16
-
 # Mask for byte-swapping a couple of qwords in an XMM register using (v)pshufb.
 XMM_QWORD_BSWAP:
 	.octa 0x08090a0b0c0d0e0f0001020304050607
 
+# Mergeable 640-byte rodata section. This allows linker to merge the table
+# with other, exactly the same 640-byte fragment of another rodata section
+# (if such section exists).
+.section	.rodata.cst640.K512, "aM", @progbits, 640
+.align 64
+# K[t] used in SHA512 hashing
 K512:
 	.quad 0x428a2f98d728ae22,0x7137449123ef65cd
 	.quad 0xb5c0fbcfec4d3b2f,0xe9b5dba58189dbbc
@@ -615,4 +426,3 @@ K512:
 	.quad 0x3c9ebe0a15c9bebc,0x431d67c49c100d4c
 	.quad 0x4cc5d4becb3e42b6,0x597f299cfc657e2a
 	.quad 0x5fcb6fab3ad6faec,0x6c44198c4a475817
-#endif

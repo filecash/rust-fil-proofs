@@ -87,6 +87,8 @@ impl Implementation {
             }
         }
     }
+
+    #[inline]
     pub fn compress512(self, state: &mut [u64; 8], blocks: &[&[u8]]) {
         let mut buffer = [0u8; 128];
         for block in blocks.chunks(2) {

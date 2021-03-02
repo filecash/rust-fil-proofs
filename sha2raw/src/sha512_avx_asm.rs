@@ -12,12 +12,12 @@ use std::ffi::c_void;
 
 #[link(name="sha512_avx_asm", kind="static")]
 extern "C" {
-    //# void sha512_with_avx(const void* M, void* D, u64 L)
-    fn sha512_with_avx(msg: *const c_void, state: *mut c_void, len: u64);
+    //# void sha512_transform_avx(sha512_state *state, const u8 *data, int blocks)
+    fn sha512_transform_avx(state: *mut c_void, data: *const c_void, blocks: i32);
 }
 
 /// Safe wrapper around assembly implementation of SHA512-AVX compression function
 #[inline]
-pub fn compress512_avx(msg: *const c_void, state: *mut c_void, len: u64) {
-    unsafe { sha512_with_avx(msg, state, len) }
+pub fn compress512_avx(msg: *const c_void, state: *mut c_void, len: i32) {
+    unsafe { sha512_transform_avx(state, msg, len) }
 }
