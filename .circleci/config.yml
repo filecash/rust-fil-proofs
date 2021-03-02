@@ -18,7 +18,7 @@ executors:
     resource_class: gpu.nvidia.medium
 
 setup-env: &setup-env
-  FIL_PROOFS_PARAMETER_CACHE: "/root/filecoin-proof-parameters/"
+  FIL_PROOFS_PARAMETER_CACHE: "/tmp/filecoin-proof-parameters/"
   RUST_LOG: trace
 
 
