@@ -103,7 +103,7 @@ jobs:
       - run: rustc +$(cat rust-toolchain) --version
       - run: rustup toolchain list --verbose
       - persist_to_workspace:
-          root: "."
+          root: ~/gpuci
           paths:
             - Cargo.lock
       - save_cache:
