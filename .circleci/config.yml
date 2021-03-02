@@ -36,21 +36,6 @@ jobs:
     executor: gpu
     environment: *setup-env
     steps:
-      #- checkout
-      #- restore_parameter_cache
-      #- ensure_filecoin_parameters
-      #- save_parameter_cache
-
-      #- checkout
-      #- attach_workspace:
-      #    at: "."
-      #- set-env-path
-      #- restore_cache:
-      #    keys:
-      #      - cargo-v28-gpu-i-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
-      #- restore_parameter_cache
-      #- ensure_filecoin_parameters_gpu
-      #- save_parameter_cache
       - checkout
       - attach_workspace:
           at: "."
@@ -183,6 +168,7 @@ jobs:
           keys:
             - cargo-v28-b-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - restore_parameter_cache
+      - install-gpu-deps
       - run:
           name: Test ignored in release profile
           command: |
@@ -513,18 +499,6 @@ commands:
           name: Obtain filecoin groth parameters
           command: ~/paramcache.awesome --sector-sizes='2048,4096,16384,32768'
           no_output_timeout: 60m
-  ensure_filecoin_parameters_gpu:
-    steps:
-      - run:
-          name: Build paramcache if it doesn't already exist
-          command: |
-            set -x; test -f ~/paramcache.awesome \
-            || (cargo build --release --workspace && find . -type f -name paramcache | xargs -I {} mv {} ~/paramcache.awesome)
-      - run:
-          name: Obtain filecoin groth parameters
-          command: ~/paramcache.awesome --sector-sizes='2048,4096,16384,32768'
-          no_output_timeout: 60m
-
   save_parameter_cache:
     steps:
       - save_cache:
@@ -537,18 +511,6 @@ commands:
       - restore_cache:
          keys:
             - proof-params-v28-c-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
-  save_parameter_cache_gpu:
-    steps:
-      - save_cache:
-          key: proof-params-v28-d-gpu-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
-          paths:
-            - "~/paramcache.awesome"
-            - "~/filecoin-proof-parameters/"
-  restore_parameter_cache_gpu:
-    steps:
-      - restore_cache:
-         keys:
-            - proof-params-v28-d-gpu-{{ checksum "filecoin-proofs/parameters.json" }}-{{ arch }}
 
 workflows:
   version: 2.1
