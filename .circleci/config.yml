@@ -19,7 +19,7 @@ executors:
 
 setup-env: &setup-env
   FIL_PROOFS_PARAMETER_CACHE: "/root/filecoin-proof-parameters/"
-  RUST_LOG: info
+  RUST_LOG: trace
 
 
 jobs:
