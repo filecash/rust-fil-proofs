@@ -10,7 +10,7 @@ compile_error!("crate can only be used on x86-64 architectures");
 
 use std::ffi::c_void;
 
-#[cfg(any(feature = "avx", feature = "avx2"))]
+#[cfg(any(feature = "sha512_avx", feature = "sha512_avx2"))]
 #[link(name="sha512_avx_asm", kind="static")]
 extern "C" {
     //# void sha512_transform_avx(sha512_state *state, const u8 *data, int blocks)
@@ -18,8 +18,8 @@ extern "C" {
 }
 
 /// Safe wrapper around assembly implementation of SHA512-AVX compression function
+#[cfg(any(feature = "sha512_avx", feature = "sha512_avx2"))]
 #[inline]
-pub fn compress512_avx(msg: *const c_void, state: *mut c_void, len: i32) {
-    #[cfg(any(feature = "avx", feature = "avx2"))]
+pub fn compress512_avx(msg: *const c_void, state: *mut c_void, len: i32) {    
     unsafe { sha512_transform_avx(state, msg, len) }
 }

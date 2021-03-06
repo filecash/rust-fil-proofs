@@ -91,10 +91,10 @@ impl Sha512 {
         for block in blocks.chunks(2) {
             buffer[..64].copy_from_slice(&block[0]);
             buffer[64..].copy_from_slice(&block[1]);
-            #[cfg(all(not(feature = "avx"), not(feature = "avx2")))]
+            #[cfg(all(not(feature = "sha512_avx"), not(feature = "sha512_avx2")))]
             unsafe { sha2_asm::compress512(&mut *(state as *mut _ as *mut [u64; 8]), &buffer); }
 
-            #[cfg(any(feature = "avx", feature = "avx2"))]
+            #[cfg(any(feature = "sha512_avx", feature = "sha512_avx2"))]
             sha512_avx_asm::compress512_avx(&buffer as *const [u8; 128] as *const c_void, state as *mut [u64] as *mut c_void, 1);
         }
     }
