@@ -17,13 +17,13 @@ fn main() {
         #[cfg(feature = "sha512_avx")]
         {
             println!("build sha2raw with avx!");
-            sha512_path = "src/sha512-avx-asm.S";
+            sha512_path = "src/sha512_avx_asm.S";
         }
 
         #[cfg(feature = "sha512_avx2")]
         {
             println!("build sha2raw with avx2!");
-            sha512_path = "src/sha512-avx2-asm.S";
+            sha512_path = "src/sha512_avx2_asm.S";
         }
 
         cc::Build::new()
